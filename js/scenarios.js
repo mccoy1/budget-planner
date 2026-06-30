@@ -64,7 +64,7 @@ async function newBlankScenario(){
   const name = (prompt('Name this scenario:', 'New scenario') || '').trim();
   if(!name) return;
   const id = uid();
-  const blank = { income: { amount: 0, period: 'monthly' }, categories: [] };
+  const blank = { income: { amount: 0, period: 'monthly' }, categories: [], currency: state.currency || 'USD' };
   scenarioIndex.push({ id, name, updatedAt: Date.now() });
   activeId = id;
   state = blank;

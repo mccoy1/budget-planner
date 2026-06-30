@@ -67,7 +67,7 @@ function renderEditForm(){
 
     <label>Amount is</label>
     <div class="seg">
-      <button data-act="amtType" data-key="fixed" class="${d.amountType==='fixed'?'active':''}">Fixed $</button>
+      <button data-act="amtType" data-key="fixed" class="${d.amountType==='fixed'?'active':''}">Fixed ${ { USD:'$', EUR:'€', JPY:'¥' }[(state&&state.currency)||'USD'] || '$' }</button>
       <button data-act="amtType" data-key="percent" class="${d.amountType==='percent'?'active':''}">% of income</button>
     </div>
 
@@ -178,6 +178,17 @@ function renderMainMenu(){
         <div class="menu-btn-row">
           <button class="bar-btn" data-act="rename">✎ Rename</button>
           <button class="bar-btn" data-act="delscenario">✕ Delete</button>
+        </div>
+      </div>
+      <div class="menu-divider"></div>
+      <div class="menu-section">
+        <div class="menu-section-title">Currency</div>
+        <div class="currency-options">
+          ${[['USD','$ US Dollar'],['EUR','€ Euro'],['JPY','¥ Japanese Yen']].map(([code,label])=>`
+          <label class="currency-option">
+            <input type="radio" name="currency" value="${code}" data-act="setcurrency" ${(state.currency||'USD')===code?'checked':''}>
+            ${label}
+          </label>`).join('')}
         </div>
       </div>
       <div class="menu-divider"></div>
