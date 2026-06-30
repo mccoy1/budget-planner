@@ -11,7 +11,10 @@ function monthlyValue(cat){
 }
 function fmt(n){
   const sign = n < 0 ? '-' : '';
-  return sign + '$' + Math.abs(n).toLocaleString(undefined,{maximumFractionDigits: Math.abs(n) < 100 ? 2 : 0});
+  const currency = (state && state.currency) || 'USD';
+  const symbol = { USD: '$', EUR: '€', JPY: '¥' }[currency] || '$';
+  const decimals = currency === 'JPY' ? 0 : (Math.abs(n) < 100 ? 2 : 0);
+  return sign + symbol + Math.abs(n).toLocaleString(undefined, { maximumFractionDigits: decimals });
 }
 
 // ---------- Editing a single category ----------

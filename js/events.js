@@ -106,6 +106,7 @@ function handleClick(e){
     queueSave(); render();
     return;
   }
+  if(a==='setcurrency'){ state.currency = act.value; queueSave(); render(); return; }
   if(a==='dup'){ duplicateScenario(); return; }
   if(a==='newblank'){ newBlankScenario(); return; }
   if(a==='rename'){ renameScenario(); return; }
