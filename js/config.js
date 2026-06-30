@@ -38,6 +38,7 @@ function seedState(){
       { id: uid(), name:'Netflix', colorType:'expense', amountType:'fixed', value:10, period:'monthly', location:'left' },
       { id: uid(), name:'Property Tax', colorType:'obligation', amountType:'fixed', value:3300, period:'yearly', location:'left' },
       { id: uid(), name:'Auto Registration', colorType:'obligation', amountType:'fixed', value:120, period:'yearly', location:'left' },
+      { id: uid(), name:'Car Replacement Fund', colorType:'savings', amountType:'fixed', value:100, period:'monthly', location:'left' },
 
       { id: uid(), name:'Food — groceries', colorType:'expense', amountType:'fixed', value:700, period:'monthly', location:'budget' },
       { id: uid(), name:'Food — eating out', colorType:'expense', amountType:'fixed', value:200, period:'monthly', location:'budget' },
@@ -45,11 +46,14 @@ function seedState(){
       { id: uid(), name:'Gas', colorType:'expense', amountType:'fixed', value:400, period:'monthly', location:'budget' },
       { id: uid(), name:'Clothing', colorType:'expense', amountType:'fixed', value:200, period:'monthly', location:'budget' },
       { id: uid(), name:'Savings — Emergency Fund', colorType:'savings', amountType:'percent', value:10, period:'monthly', location:'budget' },
+      { id: uid(), name:'Car Insurance', colorType:'obligation', amountType:'fixed', value:140, period:'monthly', location:'budget' },
 
       { id: uid(), name:'Kids College', colorType:'savings', amountType:'percent', value:5, period:'monthly', location:'right' },
       { id: uid(), name:'Tithe', colorType:'savings', amountType:'percent', value:10, period:'monthly', location:'right' },
       { id: uid(), name:'Michael — Slush', colorType:'savings', amountType:'fixed', value:150, period:'monthly', location:'right' },
       { id: uid(), name:'Sarah — Slush', colorType:'savings', amountType:'fixed', value:150, period:'monthly', location:'right' },
+      { id: uid(), name:'Entertainment', colorType:'expense', amountType:'fixed', value:75, period:'monthly', location:'right' },
+      { id: uid(), name:'Student Loan', colorType:'obligation', amountType:'fixed', value:220, period:'monthly', location:'right' },
     ]
   };
 }
