@@ -33,7 +33,7 @@ function uid(){ return 'c' + Math.random().toString(36).slice(2,9); }
 
 function seedState(){
   return {
-    income: { amount: 10560, period: 'monthly' },
+    income: { amount: 7560, period: 'monthly' },
     categories: [
       { id: uid(), name:'Netflix', colorType:'expense', amountType:'fixed', value:10, period:'monthly', location:'left' },
       { id: uid(), name:'Property Tax', colorType:'obligation', amountType:'fixed', value:3300, period:'yearly', location:'left' },
