@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Household Budget Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div class="wrap" id="app">
+  <div class="loading">Loading your budget…</div>
+</div>
+
+<!-- Loaded as ordered classic scripts that share one global scope.
+     config.js declares the shared state; main.js boots the app and must load last. -->
+<script src="js/config.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/colors.js"></script>
+<script src="js/scenarios.js"></script>
+<script src="js/categories.js"></script>
+<script src="js/render.js"></script>
+<script src="js/drag.js"></script>
+<script src="js/events.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
