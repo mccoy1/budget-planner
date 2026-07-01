@@ -18,6 +18,13 @@ function closeOpenPanelsIfOutside(e){
   }
 }
 
+function saveZoneTitle(zone, value){
+  if(!state.zoneTitles) state.zoneTitles = {};
+  state.zoneTitles[zone] = value.trim() || 'Available';
+  editingZoneTitle = null;
+  queueSave(); render();
+}
+
 function attachHandlers(){
   const app = document.getElementById('app');
 
@@ -27,6 +34,19 @@ function attachHandlers(){
   // clicks
   app.addEventListener('click', handleClick);
   document.addEventListener('click', closeOpenPanelsIfOutside, true);
+
+  // zone title inline editing
+  ['left','right'].forEach(zone=>{
+    const inp = document.getElementById(`zone-title-${zone}`);
+    if(inp){
+      inp.focus(); inp.select();
+      inp.addEventListener('blur', ()=> saveZoneTitle(zone, inp.value));
+      inp.addEventListener('keydown', e=>{
+        if(e.key==='Enter') inp.blur();
+        if(e.key==='Escape'){ editingZoneTitle=null; render(); }
+      });
+    }
+  });
 
   // scenario switcher
   const sel = document.getElementById('scenario-select');
@@ -106,6 +126,7 @@ function handleClick(e){
     queueSave(); render();
     return;
   }
+  if(a==='edittitle'){ editingZoneTitle = act.dataset.zone; render(); return; }
   if(a==='setcurrency'){ state.currency = act.value; queueSave(); render(); return; }
   if(a==='dup'){ duplicateScenario(); return; }
   if(a==='newblank'){ newBlankScenario(); return; }

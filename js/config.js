@@ -26,6 +26,7 @@ let breakdownOpen = false; // whether the category-group breakdown panel is show
 // Edit/form state (used by categories.js, render.js, events.js)
 let editingId = null; // category currently being edited, or 'new-left' / 'new-right' / 'new-budget'
 let editDraft = null;
+let editingZoneTitle = null; // 'left' or 'right' when that column title is being edited
 let bulkZone = null; // zone key when the "add multiple" textarea is open, else null
 let menuOpenId = null; // category id whose chip options menu is open, else null
 
@@ -35,6 +36,7 @@ function seedState(){
   return {
     income: { amount: 7560, period: 'monthly' },
     currency: 'USD',
+    zoneTitles: { left: 'Available', right: 'Available' },
     categories: [
       { id: uid(), name:'Netflix', colorType:'expense', amountType:'fixed', value:10, period:'monthly', location:'left' },
       { id: uid(), name:'Property Tax', colorType:'obligation', amountType:'fixed', value:3300, period:'yearly', location:'left' },

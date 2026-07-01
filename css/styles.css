@@ -214,6 +214,14 @@ body{
 }
 .col-title{font-family:'Space Grotesk';font-weight:600;font-size:14px;}
 .col-budget .col-title{color:var(--gold-deep);}
+.col-title-editable{cursor:pointer;}
+.col-title-editable:hover{color:var(--gold-deep);}
+.zone-title-input{
+  font-family:'Space Grotesk';font-weight:600;font-size:14px;
+  border:none;border-bottom:2px solid var(--gold-deep);
+  background:transparent;color:var(--ink);outline:none;
+  width:110px;padding:0;
+}
 
 /* Generic "?" help badge — replaces inline instructional copy */
 .help-icon{

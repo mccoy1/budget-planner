@@ -129,10 +129,16 @@ function renderZone(zoneKey, title, hint){
       <button data-act="addnew" data-zone="${zoneKey}">+ Add category</button>
       <button data-act="bulknew" data-zone="${zoneKey}">+ Add multiple</button>
     </div>` : '';
+  const isShelf = zoneKey === 'left' || zoneKey === 'right';
+  const titleHtml = isShelf
+    ? (editingZoneTitle === zoneKey
+        ? `<input type="text" class="zone-title-input" id="zone-title-${zoneKey}" value="${escapeHtml(title)}" />`
+        : `<div class="col-title col-title-editable" data-act="edittitle" data-zone="${zoneKey}" data-tip="Click to rename">${escapeHtml(title)}</div>`)
+    : `<div class="col-title">${escapeHtml(title)}</div>`;
   return `
     <div class="col ${zoneKey==='budget'?'col-budget':''}">
       <div class="col-head">
-        <div class="col-title">${title}</div>
+        ${titleHtml}
         <span class="help-icon" data-tip="${escapeHtml(hint)}">?</span>
       </div>
       <div class="dropzone-toolbar">
@@ -295,9 +301,9 @@ function render(){
     </div>
 
     <div class="board">
-      ${renderZone('left', 'Available', 'Drag into your budget →')}
+      ${renderZone('left', (state.zoneTitles&&state.zoneTitles.left)||'Available', 'Drag into your budget →')}
       ${renderZone('budget', 'Your Budget', "This month's plan")}
-      ${renderZone('right', 'Available', '← Drag into your budget')}
+      ${renderZone('right', (state.zoneTitles&&state.zoneTitles.right)||'Available', '← Drag into your budget')}
     </div>
 
     <div class="balance-wrap">
