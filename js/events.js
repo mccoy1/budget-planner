@@ -77,6 +77,7 @@ function handleClick(e){
   if(a==='togglemainmenu'){ mainMenuOpen = !mainMenuOpen; render(); return; }
   if(a==='toggleaddmenu'){ addMenuZone = (addMenuZone===act.dataset.zone) ? null : act.dataset.zone; render(); return; }
   if(a==='snapgrid'){ snapToGridBudget(); return; }
+  if(a==='starttour'){ startTour(); return; }
   if(a==='togglesearch'){ searchOpen = true; searchFocusPending = true; render(); return; }
   if(a==='togglebreakdown'){ breakdownOpen = !breakdownOpen; render(); return; }
   if(a==='closesearch'){ searchOpen = false; searchQuery = ''; render(); return; }

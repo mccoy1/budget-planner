@@ -3,6 +3,7 @@
 (async function init(){
   await Promise.all([loadInitial(), loadColorGroups()]);
   render();
+  maybeStartTour();
 })();
 
 let resizeTimer = null;
