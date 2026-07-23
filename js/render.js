@@ -280,6 +280,7 @@ function render(){
           : 'Drag categories into your budget, or use the move option in a chip menu. Saving locally in this browser only — open this inside Claude to share scenarios with your spouse.'}">?</span>
       </div>
       <div class="top-actions">
+        <button class="bar-btn icon-only" data-act="starttour" data-tip="Take a tour">🧭</button>
         ${searchOpen ? `
           <div class="search-box">
             <input type="text" id="search-input" placeholder="Search categories…" value="${escapeHtml(searchQuery)}" />
