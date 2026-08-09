@@ -28,6 +28,7 @@ let viewPref = null;            // 'mobile' | 'full' | null (null = follow the v
 let expandedGroups = new Set(); // color-group keys expanded in the compact budget list
 let shelfOpen = false;          // whether the "Not in budget" list is expanded
 let inlineEditId = null;        // category whose amount is being edited in place
+let swipedRowId = null;         // category row swiped open to reveal its Delete action
 
 // Edit/form state (used by categories.js, render.js, events.js)
 let editingId = null; // category currently being edited, or 'new-left' / 'new-right' / 'new-budget'

@@ -76,6 +76,12 @@ What's different:
   "what if groceries were $800?" is one tap. The field edits the raw stored
   value (a percent stays a percent, a yearly amount stays yearly); the row shows
   the monthly equivalent once committed.
+- **Swiping a row left brings in a Delete panel** from the right edge, in either
+  list. Deleting takes a deliberate tap on it, so a stray sideways drag while
+  scrolling can't destroy anything, and one row is open at a time. The row's own
+  contents stay put under the panel: sliding the whole row (the iOS Mail model)
+  pushes short category names off the left edge, and you shouldn't be one tap
+  from deleting something whose name you can no longer read.
 - The guided tour spotlights desktop selectors, so it only runs in the full view.
 
 Either view can be forced from **Menu → View**, which stores a device-local

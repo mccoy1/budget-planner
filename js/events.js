@@ -16,6 +16,11 @@ function closeOpenPanelsIfOutside(e){
     addMenuZone = null;
     render();
   }
+  // A swiped-open row closes on a tap anywhere else. It's live DOM state, so
+  // this just drops the class — no re-render needed.
+  if(swipedRowId && !e.target.closest('.m-row.swiped')){
+    closeSwipedRow();
+  }
 }
 
 function saveZoneTitle(zone, value){
@@ -30,6 +35,9 @@ function attachHandlers(){
 
   // free-form dragging (mouse + touch via Pointer Events)
   app.addEventListener('pointerdown', onCardPointerDown);
+
+  // compact view: swipe a row left to uncover its Delete action
+  app.addEventListener('pointerdown', onSwipePointerDown);
 
   // clicks
   app.addEventListener('click', handleClick);
@@ -122,6 +130,7 @@ function handleClick(e){
     return;
   }
   if(a==='setview'){ setViewPref(act.dataset.pref); return; }
+  if(a==='swipedel'){ deleteCat(act.dataset.id); return; }
   if(a==='togglemenu'){ menuOpenId = (menuOpenId===act.dataset.id) ? null : act.dataset.id; render(); return; }
   if(a==='edit'){ const c = state.categories.find(c=>c.id===act.dataset.id); startEdit(c,false); return; }
   if(a==='del'){ deleteCat(act.dataset.id); return; }

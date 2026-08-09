@@ -648,9 +648,32 @@ body.mobile-mode .menu-panel{width:min(280px, calc(100vw - 24px));}
 .m-chev{color:var(--ink-soft);font-size:11px;flex-shrink:0;}
 
 .m-rows{border-top:1px solid var(--surface-line);padding:4px 0;}
-.m-row{padding:0 8px 0 14px;}
+.m-row{position:relative;overflow:hidden;}
 .m-row + .m-row{border-top:1px solid var(--paper);}
 .m-row-main{display:flex;align-items:center;gap:8px;min-height:48px;}
+
+/* Swipe to delete: the Delete panel tracks the finger in from the right edge,
+   covering the amount and the +/- button. The row's contents deliberately stay
+   put — sliding the whole row (the iOS Mail model) pushes short category names
+   straight off the left edge, and you shouldn't be one tap from deleting
+   something you can no longer see the name of.
+   touch-action:pan-y keeps vertical scrolling native while handing horizontal
+   movement to the pointer handlers in mobile.js. */
+.m-row{touch-action:pan-y;}
+.m-row-actions{
+  position:absolute;top:0;right:0;bottom:0;width:88px;display:flex;z-index:2;
+  transform:translateX(100%);
+  transition:transform .18s ease;
+  /* reads as sliding over the row rather than clipping whatever it covers */
+  box-shadow:-8px 0 12px rgba(38,49,74,0.12);
+}
+.m-row-actions.sliding{transition:none;}
+.m-row.swiped .m-row-actions{transform:translateX(0);}
+.m-del{
+  width:100%;border:none;background:var(--red);color:#fff;cursor:pointer;
+  font-family:'Inter';font-size:13.5px;font-weight:600;
+}
+.m-row-slide{position:relative;background:var(--surface);padding:0 8px 0 14px;}
 /* The name and the amount are both tappable (full edit / inline amount), so
    they're padded out to a comfortable target rather than sized to their text. */
 .m-name{

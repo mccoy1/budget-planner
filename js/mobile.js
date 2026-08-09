@@ -112,14 +112,24 @@ function renderMobileRow(cat){
       </div>`;
   }
 
+  return renderMobileSwipeRow(cat, `
+    <button class="m-name" data-act="edit" data-id="${cat.id}">${escapeHtml(cat.name)}</button>
+    <button class="m-amt" data-act="minline" data-id="${cat.id}" aria-label="Edit amount for ${escapeHtml(cat.name)}">
+      ${fmt(monthlyValue(cat))}<span class="m-amt-per">/mo</span>
+    </button>
+    <button class="m-icon" data-act="move" data-id="${cat.id}" data-to="left" aria-label="Remove ${escapeHtml(cat.name)} from budget">−</button>`);
+}
+
+// Wraps a row's contents alongside the Delete panel that swipe-to-delete brings
+// in from the right edge. See the swipe handlers below.
+function renderMobileSwipeRow(cat, innerHtml){
   return `
-    <div class="m-row" data-id="${cat.id}">
-      <div class="m-row-main">
-        <button class="m-name" data-act="edit" data-id="${cat.id}">${escapeHtml(cat.name)}</button>
-        <button class="m-amt" data-act="minline" data-id="${cat.id}" aria-label="Edit amount for ${escapeHtml(cat.name)}">
-          ${fmt(monthlyValue(cat))}<span class="m-amt-per">/mo</span>
-        </button>
-        <button class="m-icon" data-act="move" data-id="${cat.id}" data-to="left" aria-label="Remove ${escapeHtml(cat.name)} from budget">−</button>
+    <div class="m-row m-swipeable" data-id="${cat.id}">
+      <div class="m-row-actions">
+        <button class="m-del" data-act="swipedel" data-id="${cat.id}">Delete</button>
+      </div>
+      <div class="m-row-slide">
+        <div class="m-row-main">${innerHtml}</div>
       </div>
     </div>`;
 }
@@ -147,14 +157,10 @@ function renderMobileShelf(){
   const total = cats.reduce((s,c) => s + monthlyValue(c), 0);
   const rows = shelfOpen ? `
     <div class="m-rows">
-      ${cats.slice().sort(byMonthlyDesc).map(cat => `
-        <div class="m-row" data-id="${cat.id}">
-          <div class="m-row-main">
-            <button class="m-name" data-act="edit" data-id="${cat.id}">${escapeHtml(cat.name)}</button>
-            <span class="m-amt m-amt-muted">${fmt(monthlyValue(cat))}<span class="m-amt-per">/mo</span></span>
-            <button class="m-icon m-icon-add" data-act="move" data-id="${cat.id}" data-to="budget" aria-label="Add ${escapeHtml(cat.name)} to budget">+</button>
-          </div>
-        </div>`).join('')}
+      ${cats.slice().sort(byMonthlyDesc).map(cat => renderMobileSwipeRow(cat, `
+        <button class="m-name" data-act="edit" data-id="${cat.id}">${escapeHtml(cat.name)}</button>
+        <span class="m-amt m-amt-muted">${fmt(monthlyValue(cat))}<span class="m-amt-per">/mo</span></span>
+        <button class="m-icon m-icon-add" data-act="move" data-id="${cat.id}" data-to="budget" aria-label="Add ${escapeHtml(cat.name)} to budget">+</button>`)).join('')}
       ${cats.length ? '' : '<div class="m-empty">Nothing on the shelf.</div>'}
       <button class="m-add" data-act="addnew" data-zone="left">+ Add to shelf</button>
     </div>` : '';
@@ -170,6 +176,105 @@ function renderMobileShelf(){
       </button>
       ${rows}
     </div>`;
+}
+
+// ---------- Swipe to delete ----------
+// Swiping a row left brings in a Delete panel from the right edge; deleting
+// still takes a deliberate tap on it, so a stray sideways drag while scrolling
+// can't destroy anything. The row's own contents stay put so the category name
+// is still readable at the moment you confirm — see the CSS for why.
+//
+// The gesture writes style.transform directly rather than re-rendering per
+// pointermove. Open/closed is therefore live DOM state, which is why
+// renderMobile() clears swipedRowId — a rebuilt list starts closed.
+
+const SWIPE_ACTION_WIDTH = 88; // must match .m-row-actions width in the CSS
+const SWIPE_START_THRESHOLD = 8;
+
+let swipeCtx = null;
+
+function closeSwipedRow(){
+  document.querySelectorAll('.m-row.swiped').forEach(el => el.classList.remove('swiped'));
+  swipedRowId = null;
+}
+
+// A swipe usually starts on top of one of the row's buttons, so the click that
+// follows pointerup has to be swallowed or it would open the edit form.
+function suppressNextClick(){
+  const swallow = ev => { ev.stopPropagation(); ev.preventDefault(); };
+  document.addEventListener('click', swallow, { capture:true, once:true });
+  setTimeout(() => document.removeEventListener('click', swallow, true), 400);
+}
+
+function endSwipeTracking(){
+  document.removeEventListener('pointermove', onSwipePointerMove);
+  swipeCtx = null;
+}
+
+function onSwipePointerDown(e){
+  if(e.pointerType === 'mouse' && e.button !== 0) return;
+  const rowEl = e.target.closest('.m-swipeable');
+  if(!rowEl) return;
+  if(e.target.closest('.m-row-actions')) return; // let Delete be tapped normally
+
+  swipeCtx = {
+    id: rowEl.dataset.id,
+    rowEl,
+    actionsEl: rowEl.querySelector('.m-row-actions'),
+    startX: e.clientX,
+    startY: e.clientY,
+    startOffset: rowEl.classList.contains('swiped') ? -SWIPE_ACTION_WIDTH : 0,
+    active: false,
+  };
+  document.addEventListener('pointermove', onSwipePointerMove);
+  document.addEventListener('pointerup', onSwipePointerUp, { once:true });
+  document.addEventListener('pointercancel', onSwipePointerCancel, { once:true });
+}
+
+function swipeOffsetFor(e){
+  const dx = e.clientX - swipeCtx.startX;
+  return Math.max(-SWIPE_ACTION_WIDTH, Math.min(0, swipeCtx.startOffset + dx));
+}
+
+function onSwipePointerMove(e){
+  if(!swipeCtx) return;
+  const dx = e.clientX - swipeCtx.startX;
+  const dy = e.clientY - swipeCtx.startY;
+
+  if(!swipeCtx.active){
+    // A mostly-vertical drag is a scroll, not a swipe — get out of its way.
+    // (touch-action:pan-y also lets the browser scroll without asking us.)
+    if(Math.abs(dy) > Math.abs(dx)){ endSwipeTracking(); return; }
+    if(Math.abs(dx) < SWIPE_START_THRESHOLD) return;
+    swipeCtx.active = true;
+    swipeCtx.actionsEl.classList.add('sliding'); // drop the transition while tracking the finger
+    if(swipedRowId && swipedRowId !== swipeCtx.id) closeSwipedRow();
+  }
+
+  // offset runs 0 (closed) to -SWIPE_ACTION_WIDTH (fully open); the panel starts
+  // one full width off the right edge and follows the finger in.
+  swipeCtx.actionsEl.style.transform = `translateX(${SWIPE_ACTION_WIDTH + swipeOffsetFor(e)}px)`;
+}
+
+function onSwipePointerUp(e){
+  if(!swipeCtx) return;
+  if(swipeCtx.active){
+    const open = swipeOffsetFor(e) <= -SWIPE_ACTION_WIDTH * 0.4;
+    swipeCtx.actionsEl.classList.remove('sliding');
+    swipeCtx.actionsEl.style.transform = ''; // hand the position back to the CSS class
+    swipeCtx.rowEl.classList.toggle('swiped', open);
+    swipedRowId = open ? swipeCtx.id : null;
+    suppressNextClick();
+  }
+  endSwipeTracking();
+}
+
+// Fires when the browser takes the gesture over (a vertical scroll wins, say).
+function onSwipePointerCancel(){
+  if(!swipeCtx) return;
+  swipeCtx.actionsEl.classList.remove('sliding');
+  swipeCtx.actionsEl.style.transform = '';
+  endSwipeTracking();
 }
 
 // ---------- Menu ----------
@@ -217,6 +322,7 @@ function renderMobileMenu(){
 
 function renderMobile(){
   document.body.classList.add('mobile-mode');
+  swipedRowId = null; // the list is rebuilt below, so every row starts closed
   if(typeof tourActive !== 'undefined' && tourActive) endTour(); // desktop-only selectors
 
   const app = document.getElementById('app');
