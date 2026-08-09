@@ -311,6 +311,12 @@ function renderMobileMenu(){
       </div>
       <div class="menu-divider"></div>
       <div class="menu-section">
+        <div class="menu-section-title">Share</div>
+        <button class="bar-btn m-wide" data-act="share">🔗 Share this budget</button>
+        <div class="m-menu-hint">Creates a link that carries a copy of this scenario.</div>
+      </div>
+      <div class="menu-divider"></div>
+      <div class="menu-section">
         <div class="menu-section-title">View</div>
         <button class="bar-btn m-wide" data-act="setview" data-pref="full">Switch to full view</button>
         <div class="m-menu-hint">The full board has drag-and-drop, category colors and multi-add.</div>

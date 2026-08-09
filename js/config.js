@@ -30,6 +30,12 @@ let shelfOpen = false;          // whether the "Not in budget" list is expanded
 let inlineEditId = null;        // category whose amount is being edited in place
 let swipedRowId = null;         // category row swiped open to reveal its Delete action
 
+// Share-by-link state (see share.js)
+let shareOpen = false;      // whether the share sheet is showing
+let shareUrl = null;        // the built link, or null while it's still encoding
+let shareCopied = false;    // shows the "copied" confirmation on the button
+let pendingImport = null;   // a scenario decoded from #s=… awaiting confirmation
+
 // Edit/form state (used by categories.js, render.js, events.js)
 let editingId = null; // category currently being edited, or 'new-left' / 'new-right' / 'new-budget'
 let editDraft = null;

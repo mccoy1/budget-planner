@@ -131,6 +131,11 @@ function handleClick(e){
   }
   if(a==='setview'){ setViewPref(act.dataset.pref); return; }
   if(a==='swipedel'){ deleteCat(act.dataset.id); return; }
+  if(a==='share'){ openShare(); return; }
+  if(a==='sharecancel'){ closeShare(); return; }
+  if(a==='sharecopy'){ copyShareUrl(); return; }
+  if(a==='importconfirm'){ acceptPendingImport(); return; }
+  if(a==='importcancel'){ dismissPendingImport(); return; }
   if(a==='togglemenu'){ menuOpenId = (menuOpenId===act.dataset.id) ? null : act.dataset.id; render(); return; }
   if(a==='edit'){ const c = state.categories.find(c=>c.id===act.dataset.id); startEdit(c,false); return; }
   if(a==='del'){ deleteCat(act.dataset.id); return; }
