@@ -23,6 +23,12 @@ let searchFocusPending = false;
 let hiddenColors = new Set(); // colorType keys currently toggled off (hidden)
 let breakdownOpen = false; // whether the category-group breakdown panel is shown
 
+// Mobile (compact) view state — see mobile.js
+let viewPref = null;            // 'mobile' | 'full' | null (null = follow the viewport)
+let expandedGroups = new Set(); // color-group keys expanded in the compact budget list
+let shelfOpen = false;          // whether the "Not in budget" list is expanded
+let inlineEditId = null;        // category whose amount is being edited in place
+
 // Edit/form state (used by categories.js, render.js, events.js)
 let editingId = null; // category currently being edited, or 'new-left' / 'new-right' / 'new-budget'
 let editDraft = null;

@@ -38,6 +38,7 @@ budget-planner/
     ├── scenarios.js  # load/save + scenario CRUD (switch/duplicate/new/rename/delete)
     ├── categories.js # money math, category editing, positioning, search, bulk add
     ├── render.js     # all HTML rendering, including the top-level render()
+    ├── mobile.js     # the compact (mobile) view: view switching + list rendering
     ├── drag.js       # free-form pointer-based card dragging
     ├── events.js     # event wiring + the data-act click dispatcher
     └── main.js       # bootstrap (init) + window resize handling
@@ -51,6 +52,35 @@ and share one global scope, exactly as the original single-file version did.
 and boots the app. The UI uses event delegation — interactive elements carry a
 `data-act` attribute that `handleClick` in `events.js` dispatches on — so no
 inline event handlers or global function lookups from HTML are needed.
+
+## Compact (mobile) view
+
+Below 700px the app renders a second, tap-driven layout instead of the drag
+board — a single scrolling column built for quick "what's left?" checks rather
+than full planning. `render()` branches to `renderMobile()` at the top; every
+other layer (money math, category editing, scenarios, storage) is shared, so a
+change made on a phone shows up on the desktop board and vice versa.
+
+What's different:
+
+- **Budgeted categories are grouped by color group and collapsed by default**,
+  showing a count and subtotal per group. A twenty-category budget reads as
+  three rows until you tap into one.
+- **Income and Remaining stay pinned** to the top of the screen.
+- **No dragging.** Categories move in and out of the budget with a `+` / `−`
+  button. Nothing here reads or writes card `x`/`y` coordinates; `moveCat()`
+  clears them, so the desktop board lays anything moved here out fresh.
+- **The left/right shelves collapse into one "Not in budget" list** — the split
+  is purely spatial on desktop and means nothing to the math.
+- **Tapping an amount edits it in place** with a numeric keypad, so a quick
+  "what if groceries were $800?" is one tap. The field edits the raw stored
+  value (a percent stays a percent, a yearly amount stays yearly); the row shows
+  the monthly equivalent once committed.
+- The guided tour spotlights desktop selectors, so it only runs in the full view.
+
+Either view can be forced from **Menu → View**, which stores a device-local
+preference in `localStorage` (deliberately not in the shared scenario data).
+With no preference set, the view follows the viewport and switches on rotate.
 
 ## Data persistence
 

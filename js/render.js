@@ -199,6 +199,12 @@ function renderMainMenu(){
       </div>
       <div class="menu-divider"></div>
       <div class="menu-section">
+        <div class="menu-section-title">View</div>
+        <button class="bar-btn m-wide" data-act="setview" data-pref="mobile">Switch to compact view</button>
+        <div class="m-menu-hint">A single-column, tap-driven layout for quick checks on a phone.</div>
+      </div>
+      <div class="menu-divider"></div>
+      <div class="menu-section">
         <div class="menu-section-title">Category colors</div>
         <div class="color-rows">${colorRows}</div>
         <div class="color-add-row">
@@ -250,6 +256,11 @@ function renderModal(){
 }
 
 function render(){
+  // The compact view is a different layout over the same data — see mobile.js.
+  // It owns no card coordinates, so none of the positioning work below applies.
+  if(isMobileView()){ renderMobile(); return; }
+  document.body.classList.remove('mobile-mode');
+
   ensurePositions();
   const scrollMap = {};
   document.querySelectorAll('.dropzone').forEach(z=>{ scrollMap[z.dataset.zone] = z.scrollTop; });

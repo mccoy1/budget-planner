@@ -61,6 +61,18 @@ function attachHandlers(){
     inp.addEventListener('change', e=> renameColorGroup(inp.dataset.key, e.target.value));
   });
 
+  // compact view: inline amount field commits on blur or Enter, cancels on Escape
+  const inlineInput = document.getElementById('m-inline-input');
+  if(inlineInput){
+    const id = inlineEditId;
+    inlineInput.focus(); inlineInput.select();
+    inlineInput.addEventListener('blur', ()=> commitInlineAmount(id, inlineInput.value));
+    inlineInput.addEventListener('keydown', e=>{
+      if(e.key==='Enter') inlineInput.blur();
+      if(e.key==='Escape') cancelInlineAmount();
+    });
+  }
+
   // search: filter live as you type, without a full re-render (keeps focus in the box)
   const searchInput = document.getElementById('search-input');
   if(searchInput){
@@ -94,6 +106,22 @@ function handleClick(e){
     addColorGroup(nameInput ? nameInput.value : '', colorInput ? colorInput.value : '#7BAFD4');
     return;
   }
+  if(a==='mgroup'){
+    const key = act.dataset.key;
+    if(expandedGroups.has(key)) expandedGroups.delete(key); else expandedGroups.add(key);
+    render();
+    return;
+  }
+  if(a==='mshelf'){ shelfOpen = !shelfOpen; render(); return; }
+  if(a==='minline'){ startInlineAmount(act.dataset.id); return; }
+  if(a==='minlinesave'){
+    // Usually the field's own blur has already committed by the time this fires;
+    // commitInlineAmount ignores the second call.
+    const inp = document.getElementById('m-inline-input');
+    commitInlineAmount(act.dataset.id, inp ? inp.value : '');
+    return;
+  }
+  if(a==='setview'){ setViewPref(act.dataset.pref); return; }
   if(a==='togglemenu'){ menuOpenId = (menuOpenId===act.dataset.id) ? null : act.dataset.id; render(); return; }
   if(a==='edit'){ const c = state.categories.find(c=>c.id===act.dataset.id); startEdit(c,false); return; }
   if(a==='del'){ deleteCat(act.dataset.id); return; }

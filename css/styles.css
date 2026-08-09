@@ -539,3 +539,182 @@ body.no-select{user-select:none;}
 .tour-primary:hover{background:var(--blue-deep);}
 .tour-secondary{background:transparent;color:var(--ink-soft);border:1px solid var(--surface-line);}
 .tour-secondary:hover{border-color:var(--gold-deep);color:var(--gold-deep);}
+
+/* ---------- Compact (mobile) view ---------- */
+/* Activated by JS, not a media query — body.mobile-mode is toggled in render()
+   so the view can also be chosen explicitly from the menu on either device. */
+
+.m-wide{width:100%;}
+.m-menu-hint{font-size:11px;color:var(--ink-soft);margin-top:6px;line-height:1.4;}
+
+/* The full view is a fixed-height flex board; the compact view is a scrolling page. */
+body.mobile-mode{
+  height:auto;min-height:100%;overflow:visible;
+  padding:0;display:block;
+  -webkit-text-size-adjust:100%;
+}
+body.mobile-mode .wrap{display:block;max-width:none;min-height:0;}
+
+.m-view{padding:0 12px 40px;}
+
+.m-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0 10px;}
+.m-title-group{display:flex;flex-direction:column;gap:2px;min-width:0;}
+.m-title{
+  font-family:'Space Grotesk';font-weight:600;font-size:13px;
+  letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);
+}
+.m-scenario{
+  font-size:12.5px;color:var(--ink);font-weight:600;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:52vw;
+}
+body.mobile-mode .menu-panel{width:min(280px, calc(100vw - 24px));}
+
+/* Income + remaining stay pinned — "what's left?" is the whole reason to open
+   this on a phone, so it shouldn't scroll away behind the category list. */
+.m-summary{
+  position:sticky;top:0;z-index:50;
+  background:var(--paper);
+  padding-bottom:10px;
+}
+.m-income{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  width:100%;min-height:48px;
+  background:var(--surface);border:1px solid var(--surface-line);border-radius:12px;
+  padding:10px 14px;margin-bottom:8px;cursor:pointer;text-align:left;
+}
+.m-income-label{
+  font-family:'Space Grotesk';font-size:11px;letter-spacing:0.06em;
+  text-transform:uppercase;color:var(--ink-soft);
+}
+.m-income-amt{font-family:'IBM Plex Mono';font-weight:700;font-size:19px;color:var(--ink);}
+.m-income-per{font-size:12px;font-weight:500;color:var(--ink-soft);}
+.m-income-edit{
+  background:var(--surface);border:1px solid var(--surface-line);border-radius:12px;
+  padding:12px;margin-bottom:8px;display:flex;flex-direction:column;gap:8px;
+}
+.m-income-edit input[type=number]{
+  width:100%;font-family:'IBM Plex Mono';font-size:22px;font-weight:700;
+  border:1px solid var(--surface-line);border-radius:8px;padding:8px 10px;
+  background:var(--surface);color:var(--ink);
+}
+.m-seg button{padding:10px 6px;font-size:14px;}
+
+.m-remaining{
+  border-radius:14px;padding:12px 16px;color:#fff;
+  box-shadow:0 8px 20px rgba(0,0,0,0.14);
+}
+.m-remaining-label{
+  font-family:'Space Grotesk';font-size:10.5px;letter-spacing:0.08em;
+  text-transform:uppercase;opacity:.85;
+}
+.m-remaining-amt{font-family:'IBM Plex Mono';font-weight:700;font-size:28px;margin-top:1px;}
+.m-remaining-sub{font-size:11.5px;margin-top:2px;opacity:.85;}
+.m-remaining .balance-track{margin-top:8px;}
+
+.m-section{margin-top:16px;}
+.m-section-head{
+  display:flex;align-items:baseline;justify-content:space-between;gap:10px;
+  padding:0 4px 8px;
+}
+.m-section-title{
+  font-family:'Space Grotesk';font-weight:600;font-size:12px;
+  letter-spacing:0.06em;text-transform:uppercase;color:var(--ink-soft);
+}
+.m-section-total{font-family:'IBM Plex Mono';font-size:12.5px;color:var(--ink-soft);}
+
+/* Groups are collapsed by default, so a twenty-category budget reads as a
+   handful of subtotals until you tap into one. */
+.m-group, .m-shelf{
+  background:var(--surface);border:1px solid var(--surface-line);
+  border-radius:12px;margin-bottom:8px;overflow:hidden;
+}
+.m-group-head{
+  display:flex;align-items:center;gap:10px;width:100%;min-height:52px;
+  background:none;border:none;padding:12px 14px;cursor:pointer;text-align:left;
+  font-family:'Inter';color:var(--ink);
+}
+.m-dot{width:12px;height:12px;border-radius:4px;flex-shrink:0;}
+.m-dot-hollow{background:var(--surface-line);}
+.m-group-name{
+  flex:1;font-size:14px;font-weight:600;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.m-group-count{
+  font-size:11px;color:var(--ink-soft);background:var(--paper);
+  border-radius:10px;padding:2px 7px;flex-shrink:0;
+}
+.m-group-total{font-family:'IBM Plex Mono';font-size:14px;font-weight:600;flex-shrink:0;}
+.m-group-total-muted{color:var(--ink-soft);font-weight:500;}
+.m-chev{color:var(--ink-soft);font-size:11px;flex-shrink:0;}
+
+.m-rows{border-top:1px solid var(--surface-line);padding:4px 0;}
+.m-row{padding:0 8px 0 14px;}
+.m-row + .m-row{border-top:1px solid var(--paper);}
+.m-row-main{display:flex;align-items:center;gap:8px;min-height:48px;}
+/* The name and the amount are both tappable (full edit / inline amount), so
+   they're padded out to a comfortable target rather than sized to their text. */
+.m-name{
+  flex:1;min-width:0;text-align:left;background:none;border:none;
+  min-height:44px;padding:13px 0;
+  font-family:'Inter';font-size:14px;line-height:18px;color:var(--ink);cursor:pointer;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.m-name-static{flex:1;min-width:0;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.m-amt{
+  flex-shrink:0;min-height:44px;padding:12px 10px;cursor:pointer;
+  background:var(--paper);border:1px solid transparent;border-radius:9px;
+  font-family:'IBM Plex Mono';font-size:14px;line-height:18px;font-weight:600;color:var(--ink);
+}
+.m-amt-muted{background:none;color:var(--ink-soft);font-weight:500;cursor:default;}
+.m-amt-per{font-size:10.5px;font-weight:500;color:var(--ink-soft);margin-left:1px;}
+.m-icon{
+  width:40px;height:40px;flex-shrink:0;
+  border:1px solid var(--surface-line);background:var(--surface);border-radius:9px;
+  color:var(--ink-soft);font-size:18px;line-height:1;cursor:pointer;
+}
+.m-icon-add{color:var(--green-deep);border-color:var(--green);}
+.m-icon-ok{color:#fff;background:var(--ink);border-color:var(--ink);font-size:15px;}
+
+.m-row-editing{background:var(--paper);border-radius:8px;margin:2px 4px;padding:4px 8px 6px 10px;}
+.m-inline{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.m-inline input[type=number]{
+  width:96px;font-family:'IBM Plex Mono';font-size:16px;font-weight:600;
+  border:1px solid var(--gold);border-radius:8px;padding:8px;
+  background:var(--surface);color:var(--ink);text-align:right;
+}
+.m-inline-unit{font-size:12px;color:var(--ink-soft);font-family:'IBM Plex Mono';}
+/* Spinner arrows eat width and are useless next to a numeric keypad. */
+body.mobile-mode input[type=number]::-webkit-outer-spin-button,
+body.mobile-mode input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+body.mobile-mode input[type=number]{-moz-appearance:textfield;}
+.m-row-note{font-size:11px;color:var(--ink-soft);padding:0 0 4px 2px;}
+
+.m-add{
+  width:100%;min-height:44px;
+  border:1px dashed var(--surface-line);background:none;border-radius:12px;
+  color:var(--ink-soft);font-family:'Inter';font-size:13.5px;font-weight:600;
+  cursor:pointer;margin-top:2px;
+}
+.m-rows .m-add{margin:6px 10px 8px;width:calc(100% - 20px);}
+.m-empty{color:var(--ink-soft);font-size:13px;padding:14px;text-align:center;line-height:1.4;}
+
+.m-footer{margin-top:18px;display:flex;flex-direction:column;align-items:center;gap:8px;}
+body.mobile-mode .breakdown-toggle{font-size:13px;padding:10px;}
+body.mobile-mode .breakdown-panel{max-height:none;}
+
+/* Touch sizing: 16px inputs (anything smaller makes iOS zoom on focus) and
+   targets big enough to hit without aiming. */
+body.mobile-mode .modal-backdrop{padding:14px;align-items:flex-start;padding-top:8vh;}
+body.mobile-mode .edit-form{padding:16px;}
+body.mobile-mode .edit-form label{font-size:11.5px;margin-top:12px;}
+body.mobile-mode .edit-form input[type=text],
+body.mobile-mode .edit-form input[type=number],
+body.mobile-mode .edit-form select,
+body.mobile-mode .edit-form textarea,
+body.mobile-mode .m-menu select{font-size:16px;padding:10px;}
+body.mobile-mode .seg button{font-size:14px;padding:11px 6px;}
+body.mobile-mode .swatch{width:36px;height:36px;}
+body.mobile-mode .swatches{gap:10px;}
+body.mobile-mode .btn-primary, body.mobile-mode .btn-secondary{font-size:15px;padding:12px;}
+body.mobile-mode .bar-btn{font-size:13.5px;padding:10px 12px;}
+body.mobile-mode .currency-option{padding:8px 0;font-size:14px;}
