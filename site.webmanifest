@@ -1,0 +1,14 @@
+{
+  "name": "Household Budget Planner",
+  "short_name": "Budget",
+  "description": "A drag-and-drop household budgeting app with saved scenarios.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#EFE7D8",
+  "theme_color": "#26314A",
+  "icons": [
+    { "src": "icons/icon-192.png", "type": "image/png", "sizes": "192x192" },
+    { "src": "icons/icon-512.png", "type": "image/png", "sizes": "512x512" }
+  ]
+}

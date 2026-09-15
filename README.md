@@ -29,6 +29,11 @@ typography (it degrades gracefully without one).
 ```
 budget-planner/
 ├── index.html        # markup + ordered <script>/<link> tags
+├── favicon.ico       # 16/32/48 fallback for browsers that request it by default
+├── site.webmanifest  # name, theme colors and icons for installable/home-screen use
+├── icons/
+│   ├── source.png    # the master artwork (1254px, transparent) — see "Icons"
+│   └── *.png         # flattened renditions: 16/32/48, 180, 192, 512
 ├── css/
 │   └── styles.css    # all styling (design tokens, layout, components)
 └── js/
@@ -88,6 +93,34 @@ What's different:
 Either view can be forced from **Menu → View**, which stores a device-local
 preference in `localStorage` (deliberately not in the shared scenario data).
 With no preference set, the view follows the viewport and switches on rotate.
+
+## Icons
+
+`icons/source.png` is the master artwork: 1254px, RGBA, a rounded-square icon
+with transparent padding around it and a soft drop shadow. The shipped renditions
+are *not* just that file resized, because iOS has two rules that would each
+break it:
+
+- **It composites transparency onto black.** The transparent corners and the
+  shadow would come back as a dark ring, still visible after iOS applies its own
+  rounded mask on top.
+- **It doesn't inset the artwork.** The source's ~4% transparent padding would
+  make the icon look shrunken inside its tile.
+
+So the renditions are built by cropping to the artwork's own bounds (the pixels
+at alpha ≥ 250 — the body sits at 252–253, comfortably above the shadow),
+squaring that crop, scaling it to fill, then rebuilding every non-opaque pixel
+from the nearest opaque pixel along the ray to the centre. That continues the
+background gradient out into the corners and discards the shadow rather than
+compositing it, so iOS's mask cuts through clean gradient. Downscaling is done
+by progressive halving, and every output is fully opaque.
+
+`apple-touch-icon.png` (180×180) is the one iOS reads for "Add to Home Screen" —
+it ignores the manifest icons and won't take an SVG. `apple-mobile-web-app-title`
+sets the label under it.
+
+Because the artwork is an illustration rather than a flat mark, the 16px favicon
+is inherently soft; it reads as a white wallet on teal rather than as detail.
 
 ## Sharing a scenario
 
