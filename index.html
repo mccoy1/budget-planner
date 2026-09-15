@@ -4,6 +4,21 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Household Budget Planner</title>
+
+<!-- Icons. Paths are relative so they resolve both on the domain and when
+     index.html is opened straight off disk. iOS reads only apple-touch-icon for
+     "Add to Home Screen" — it ignores the manifest icons, wants a PNG, and
+     composites any transparency onto black, so that file is flattened and
+     full-bleed (see "Icons" in the README). apple-mobile-web-app-title is the
+     label that appears under it. -->
+<link rel="icon" href="favicon.ico" sizes="16x16 32x32 48x48">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+<meta name="apple-mobile-web-app-title" content="Budget">
+<meta name="theme-color" content="#26314A">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
