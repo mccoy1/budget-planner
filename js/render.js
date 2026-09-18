@@ -1,7 +1,10 @@
 // ---------- Rendering ----------
 
+// Escapes quotes too: most call sites interpolate into attribute values
+// (value="…", data-tip="…"), where a bare " would end the attribute.
 function escapeHtml(s){
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+          .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
 function renderCard(cat){
