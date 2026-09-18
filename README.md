@@ -49,9 +49,9 @@ budget-planner/
 │   └── styles.css    # all styling (design tokens, layout, components)
 └── js/
     ├── config.js     # storage keys + shared mutable state, uid(), seed data
-    ├── storage.js    # persistence: Claude cloud storage or localStorage fallback
+    ├── storage.js    # persistence: the `store` interface and localStore (Claude cloud storage or localStorage)
     ├── colors.js     # category color groups (shared across scenarios)
-    ├── scenarios.js  # load/save + scenario CRUD (switch/duplicate/new/rename/delete)
+    ├── scenarios.js  # initial load, debounced save, scenario CRUD (switch/duplicate/new/rename/delete)
     ├── categories.js # money math, category editing, positioning, search, bulk add
     ├── render.js     # all HTML rendering, including the top-level render()
     ├── mobile.js     # the compact (mobile) view: view switching + list rendering
@@ -134,7 +134,20 @@ is inherently soft; it reads as a white wallet on teal rather than as detail.
 
 ## Data persistence
 
-`storage.js` detects `window.storage` (Claude's shared cloud storage). When
-present, scenarios are shared with anyone who opens the planner; otherwise it
-falls back to this browser's `localStorage`. A legacy single-budget save under
-`budget-state-v1` is migrated to a scenario automatically on first load.
+Everything the app saves goes through one object, `store` (in `storage.js`),
+which has a method per operation: `load`, `loadScenario`, `createScenario`,
+`saveScenario`, `renameScenario`, `deleteScenario`, `setActive` and
+`saveColorGroups`. The rest of the app never touches storage keys. The store is
+also the only thing that changes `scenarioIndex`; callers set `activeId`,
+`state` and `colorGroups` and then ask the store to save them.
+
+Today there is one implementation, `localStore`. It detects `window.storage`
+(Claude's shared cloud storage). When present, scenarios are shared with
+anyone who opens the planner; otherwise it falls back to this browser's
+`localStorage`. A legacy single-budget save under `budget-state-v1` is
+migrated to a scenario automatically on first load. An account-backed store
+that talks to `backend/` is next, and will plug in beside it.
+
+Device-local preferences (the view override, whether the tour has run) are not
+budget data, so they stay in `localStorage` via `lsGet`/`lsSet` whichever store
+is active.

@@ -1,17 +1,9 @@
 // ---------- Category color groups (shared across all scenarios) ----------
-
-async function loadColorGroups(){
-  const raw = await safeGet(COLOR_GROUPS_KEY);
-  if(raw){
-    try{ colorGroups = JSON.parse(raw); return; }catch(e){}
-  }
-  colorGroups = defaultColorGroups();
-  await safeSet(COLOR_GROUPS_KEY, JSON.stringify(colorGroups));
-}
+// Loaded with everything else by loadInitial() (scenarios.js).
 
 function queueColorSave(){
   clearTimeout(colorSaveTimer);
-  colorSaveTimer = setTimeout(()=> safeSet(COLOR_GROUPS_KEY, JSON.stringify(colorGroups)), 400);
+  colorSaveTimer = setTimeout(()=> store.saveColorGroups(colorGroups), 400);
 }
 
 function colorFor(key){

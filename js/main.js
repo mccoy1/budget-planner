@@ -2,7 +2,7 @@
 
 (async function init(){
   viewPref = lsGet(VIEW_PREF_KEY); // device-local view override, read before the first render
-  await Promise.all([loadInitial(), loadColorGroups()]);
+  await loadInitial();
   render();
   // The tour spotlights the desktop board, so it only runs in the full view.
   if(!isMobileView()) maybeStartTour();
