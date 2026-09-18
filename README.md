@@ -24,10 +24,21 @@ python3 -m http.server 8000
 Google Fonts are loaded from a CDN, so a network connection gives the intended
 typography (it degrades gracefully without one).
 
+## Backend
+
+`backend/` is a small Django API that will store budgets per account, so they
+follow you between devices. It runs on Render's free tier with SQLite, and
+Litestream streams the database to Cloudflare R2 so restarts lose nothing.
+The frontend doesn't call it yet. Local setup, the API and deploy steps are
+in [backend/README.md](backend/README.md).
+
 ## Project layout
 
 ```
 budget-planner/
+├── backend/          # the API: Django + SQLite + Litestream (see backend/README.md)
+├── render.yaml       # Render Blueprint that deploys backend/
+├── _config.yml       # keeps backend/ and render.yaml off the GitHub Pages site
 ├── index.html        # markup + ordered <script>/<link> tags
 ├── favicon.ico       # 16/32/48 fallback for browsers that request it by default
 ├── site.webmanifest  # name, theme colors and icons for installable/home-screen use

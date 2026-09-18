@@ -1,0 +1,24 @@
+# Litestream (pinned in bin/install-litestream.sh) streams the SQLite database
+# to a Cloudflare R2 bucket, and start.sh restores it from there on every boot.
+# ${...} values are expanded from the environment (see render.yaml). The R2 key
+# pair is read from LITESTREAM_ACCESS_KEY_ID / LITESTREAM_SECRET_ACCESS_KEY.
+
+# A full snapshot daily, and a week of restore points.
+snapshot:
+  interval: 24h
+  retention: 168h
+
+# start.sh uses this for `litestream sync -wait` on shutdown. It sets
+# LITESTREAM_SOCKET next to the database unless it's already set.
+socket:
+  enabled: true
+  path: ${LITESTREAM_SOCKET}
+
+dbs:
+  - path: ${DB_PATH}
+    replica:
+      type: s3
+      endpoint: ${LITESTREAM_R2_ENDPOINT}
+      bucket: ${LITESTREAM_R2_BUCKET}
+      path: budget-planner
+      region: auto
