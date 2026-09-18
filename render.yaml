@@ -1,0 +1,58 @@
+# Render Blueprint for the budget planner's API. The frontend is not deployed
+# from here: it is static files on GitHub Pages (budget.msmccoy.com).
+#
+# Setup steps, R2 and DNS: backend/README.md → "Deploying".
+services:
+  - type: web
+    name: budget-planner-api
+    runtime: python
+    plan: free
+    rootDir: backend
+    branch: main
+    # Never run more than one instance. Each would restore its own copy of the
+    # database and replicate it to the same place in R2.
+    buildCommand: >-
+      ./bin/install-litestream.sh &&
+      pip install -r requirements.txt &&
+      python manage.py collectstatic --noinput
+    # Migrations run here, not in the build: the database only exists once
+    # start.sh has restored it from R2.
+    startCommand: ./start.sh
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11"
+      # Required: manage.py defaults to dev settings, so without this the
+      # build's collectstatic and start.sh's migrate would run under dev.
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings.prod
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      # The custom domain, plus the service's onrender.com hostname if you want
+      # to reach it there before DNS is set up.
+      - key: DJANGO_ALLOWED_HOSTS
+        value: api.budget.msmccoy.com
+      - key: DJANGO_CORS_ALLOWED_ORIGINS
+        value: https://budget.msmccoy.com
+      # Must match litestream.yml's `path` (it reads the same variable).
+      - key: DB_PATH
+        value: /opt/render/project/src/backend/data/budget.sqlite3
+      # https://<account-id>.r2.cloudflarestorage.com
+      - key: LITESTREAM_R2_ENDPOINT
+        sync: false
+      - key: LITESTREAM_R2_BUCKET
+        sync: false
+      # An R2 API token with Object Read & Write on that one bucket only.
+      - key: LITESTREAM_ACCESS_KEY_ID
+        sync: false
+      - key: LITESTREAM_SECRET_ACCESS_KEY
+        sync: false
+      # The first admin, created on boot if it doesn't exist. The password can
+      # be removed once the account exists; it is never used to reset it.
+      - key: DJANGO_ADMIN_EMAIL
+        sync: false
+      - key: DJANGO_ADMIN_PASSWORD
+        sync: false
+      # Not listed here on purpose: REQUIRE_REPLICA. Add it in the dashboard
+      # with value 1 after the first successful boot (see start.sh). Declaring
+      # it here would let a Blueprint sync reset it.

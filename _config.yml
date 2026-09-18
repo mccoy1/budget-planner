@@ -1,0 +1,5 @@
+# GitHub Pages builds this repo's root into budget.msmccoy.com with Jekyll.
+# Keep the API's source and its deploy config off the public site.
+exclude:
+  - backend
+  - render.yaml
