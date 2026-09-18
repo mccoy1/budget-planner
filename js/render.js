@@ -1,7 +1,10 @@
 // ---------- Rendering ----------
 
+// Escapes quotes too: most call sites interpolate into attribute values
+// (value="…", data-tip="…"), where a bare " would end the attribute.
 function escapeHtml(s){
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+          .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
 function renderCard(cat){
@@ -199,12 +202,6 @@ function renderMainMenu(){
       </div>
       <div class="menu-divider"></div>
       <div class="menu-section">
-        <div class="menu-section-title">Share</div>
-        <button class="bar-btn m-wide" data-act="share">🔗 Share this budget</button>
-        <div class="m-menu-hint">Creates a link that carries a copy of this scenario.</div>
-      </div>
-      <div class="menu-divider"></div>
-      <div class="menu-section">
         <div class="menu-section-title">View</div>
         <button class="bar-btn m-wide" data-act="setview" data-pref="mobile">Switch to compact view</button>
         <div class="m-menu-hint">A single-column, tap-driven layout for quick checks on a phone.</div>
@@ -253,9 +250,7 @@ function renderBreakdownPanel(mInc){
 
 function renderModal(){
   // Both views share these, so they render from renderModal() rather than from
-  // either layout. An incoming share takes precedence over anything else.
-  if(pendingImport) return renderImportPrompt();
-  if(shareOpen) return renderShareSheet();
+  // either layout.
   if(bulkZone){
     return `<div class="modal-backdrop" data-act="bulkcancel"><div class="modal-box" data-act="noop">${renderBulkForm(bulkZone)}</div></div>`;
   }
