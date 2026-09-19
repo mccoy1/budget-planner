@@ -1,8 +1,10 @@
 // ---------- Persistence ----------
 // Everything the app saves goes through `store`: one method per operation
-// (load, create, save, rename, delete…) rather than raw keys, so a second
-// implementation backed by the account API can sit beside this one without
-// the rest of the app changing.
+// (load, create, save, rename, delete…) rather than raw keys. There are two
+// implementations with the same methods: localStore below (guests: this
+// browser) and apiStore in api.js (signed in: the account). Store methods may
+// throw; for localStore that practically never happens, for apiStore it's
+// any failed request (an ApiError carrying the HTTP status).
 //
 // The store is the only writer of `scenarioIndex`. Callers set `activeId`,
 // `state` and `colorGroups` themselves, then tell the store to persist them.
@@ -108,7 +110,8 @@ const localStore = {
     return entry;
   },
 
-  async saveScenario(id, data){
+  // `opts` ({keepalive}) matters only to apiStore; saving here is synchronous underneath.
+  async saveScenario(id, data, opts){
     await safeSet(scenarioKey(id), JSON.stringify(data));
     const entry = scenarioIndex.find(s=>s.id===id);
     if(entry) entry.updatedAt = Date.now();
@@ -133,9 +136,33 @@ const localStore = {
     return safeSet(ACTIVE_KEY, id);
   },
 
-  saveColorGroups(groups){
+  saveColorGroups(groups, opts){
     return safeSet(COLOR_GROUPS_KEY, JSON.stringify(groups));
   },
 };
 
 let store = localStore;
+
+// Everything this browser holds, shaped for the account's one-time upload
+// (POST /api/import). Read-only: unlike localStore.load() it never seeds, so a
+// browser that never saved a budget has nothing to offer.
+async function exportLocalBudgets(){
+  const scenarios = [];
+  let activeIndex = 0;
+  const idxRaw = await safeGet(INDEX_KEY);
+  if(idxRaw){
+    const active = await safeGet(ACTIVE_KEY);
+    for(const entry of JSON.parse(idxRaw)){
+      const raw = await safeGet(scenarioKey(entry.id));
+      if(!raw) continue;
+      if(entry.id === active) activeIndex = scenarios.length;
+      scenarios.push({ name: cleanScenarioName(entry.name) || 'Budget', data: JSON.parse(raw) });
+    }
+  }else{
+    const legacy = await safeGet(LEGACY_KEY);
+    if(legacy) scenarios.push({ name: 'My Budget', data: JSON.parse(legacy) });
+  }
+  let groups = null;
+  try{ groups = JSON.parse(await safeGet(COLOR_GROUPS_KEY)); }catch(e){}
+  return { scenarios, colorGroups: sanitizeColorGroups(groups || defaultColorGroups()), activeIndex };
+}

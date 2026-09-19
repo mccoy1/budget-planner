@@ -24,13 +24,24 @@ python3 -m http.server 8000
 Google Fonts are loaded from a CDN, so a network connection gives the intended
 typography (it degrades gracefully without one).
 
+To work on accounts locally, run the API too (setup in
+[backend/README.md](backend/README.md)) and serve the frontend on port 5500,
+using the same hostname for both (`localhost` and `127.0.0.1` count as
+different sites, and the session cookie isn't sent between them):
+
+```bash
+python3 -m http.server 5500          # then visit http://localhost:5500
+backend/venv/bin/python backend/manage.py runserver 8500
+```
+
 ## Backend
 
-`backend/` is a small Django API that will store budgets per account, so they
+`backend/` is a small Django API that stores budgets per account, so they
 follow you between devices. It runs on Render's free tier with SQLite, and
 Litestream streams the database to Cloudflare R2 so restarts lose nothing.
-The frontend doesn't call it yet. Local setup, the API and deploy steps are
-in [backend/README.md](backend/README.md).
+Local setup, the API and deploy steps are in
+[backend/README.md](backend/README.md). How the planner uses it is under
+"Accounts" below.
 
 ## Project layout
 
@@ -50,14 +61,17 @@ budget-planner/
 └── js/
     ├── config.js     # storage keys + shared mutable state, uid(), seed data
     ├── storage.js    # persistence: the `store` interface and localStore (Claude cloud storage or localStorage)
+    ├── api.js        # account API client (fetch, CSRF, timeouts) and apiStore
     ├── colors.js     # category color groups (shared across scenarios)
-    ├── scenarios.js  # initial load, debounced save, scenario CRUD (switch/duplicate/new/rename/delete)
+    ├── scenarios.js  # initial load, the save pipeline, scenario CRUD (switch/duplicate/new/rename/delete)
     ├── categories.js # money math, category editing, positioning, search, bulk add
     ├── render.js     # all HTML rendering, including the top-level render()
     ├── mobile.js     # the compact (mobile) view: view switching + list rendering
     ├── drag.js       # free-form pointer-based card dragging
     ├── events.js     # event wiring + the data-act click dispatcher
-    └── main.js       # bootstrap (init) + window resize handling
+    ├── tour.js       # the first-run guided tour
+    ├── account.js    # sign in/out, startup, save badge, conflicts, account dialogs
+    └── main.js       # bootstrap (init), resize handling, saving on tab close
 ```
 
 ## How it's wired
@@ -141,13 +155,49 @@ which has a method per operation: `load`, `loadScenario`, `createScenario`,
 also the only thing that changes `scenarioIndex`; callers set `activeId`,
 `state` and `colorGroups` and then ask the store to save them.
 
-Today there is one implementation, `localStore`. It detects `window.storage`
-(Claude's shared cloud storage). When present, scenarios are shared with
-anyone who opens the planner; otherwise it falls back to this browser's
+There are two implementations. `localStore` is for guests: it detects
+`window.storage` (Claude's shared cloud storage) and, when present, scenarios
+are shared with anyone who opens the planner; otherwise it uses this browser's
 `localStorage`. A legacy single-budget save under `budget-state-v1` is
-migrated to a scenario automatically on first load. An account-backed store
-that talks to `backend/` is next, and will plug in beside it.
+migrated to a scenario automatically on first load. `apiStore` (in `api.js`)
+is for a signed-in account and saves to `backend/`.
+
+Edits are debounced by 400 ms, and what's waiting is kept per scenario, so
+every scenario operation (switch, create, rename, delete) saves it first.
+Before this, an edit followed quickly by a switch was lost. Pending edits are
+also saved when the tab is hidden or closed.
 
 Device-local preferences (the view override, whether the tour has run) are not
 budget data, so they stay in `localStorage` via `lsGet`/`lsSet` whichever store
 is active.
+
+## Accounts
+
+Signing in is optional. Logged out, the planner works exactly as it always
+has, saving to this browser; the badge in the top bar says **This browser**.
+Accounts are invite-only (created in the backend's admin), and **Menu → Sign
+in** or the badge opens the sign-in dialog. The API's address is picked in
+`config.js` (`API_BASE`): the `api.` subdomain on the live site, port 8500
+locally, and none when the page is opened from disk, which hides sign-in.
+
+- **First sign-in to an empty account** offers to upload this browser's
+  budgets (they stay in the browser too), or to start from the example.
+- **Signed in**, the badge shows the save state: *Saving…*, *✓ Saved*, or
+  *Not saved · Retry* when a save fails. Failed saves are kept and retried.
+- **Startup doesn't wait for the server unless it has to.** Only a device that
+  was signed in last time (`budget:signed-in` in localStorage) checks the
+  account on load. The free server sleeps, so that check can take up to a
+  minute; after 3 seconds the screen says so. If the server can't be reached,
+  you choose between trying again and using this browser's budgets. It never
+  switches to the browser's budgets silently, where edits would go somewhere
+  you don't expect.
+- **Two devices editing the same scenario:** every save carries the version it
+  was based on. If another device or tab saved in between, the server refuses
+  and the planner asks: keep your version, or use the other one.
+- **An expired session** brings up the sign-in dialog without leaving the
+  page; after signing in, the edits made in the meantime are saved.
+- **Signing out** returns to this browser's budgets. The account's budgets
+  aren't copied into the browser.
+
+Sharing a scenario with another account is planned; the backend's access
+check (`Scenario.objects.for_user()`) is the one place it will change.
