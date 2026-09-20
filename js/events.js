@@ -97,7 +97,7 @@ function handleClick(e){
   const a = act.dataset.act;
 
   if(a==='noop'){ return; }
-  if(handleAccountAction(a)) return; // account.js: sign in/out, save retry, conflicts, notices
+  if(handleAccountAction(a, act)) return; // account.js: sign in/out, save retry, conflicts, notices
   if(a==='togglemainmenu'){ mainMenuOpen = !mainMenuOpen; render(); return; }
   if(a==='toggleaddmenu'){ addMenuZone = (addMenuZone===act.dataset.zone) ? null : act.dataset.zone; render(); return; }
   if(a==='snapgrid'){ snapToGridBudget(); return; }

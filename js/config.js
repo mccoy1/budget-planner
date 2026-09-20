@@ -49,6 +49,9 @@ let accountSheet = null;    // 'signin' | 'password' | 'conflict' | null — the
 let sessionLost = false;    // signed in, but the server says the session ended
 let saveStatus = 'saved';   // 'saving' | 'saved' | 'error' — shown in account mode
 let conflict = null;        // {id, theirs} when a save hit a newer copy from elsewhere
+let browserBudgets = null;  // this browser's budgets, while the copy sheet is open
+let browserPick = new Set();// which of them are ticked
+let browserBudgetCount = 0; // how many this browser has, for the menu's button
 let notice = null;          // one-line message across the top, dismissable
 
 // Edit/form state (used by categories.js, render.js, events.js)

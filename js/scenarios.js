@@ -16,6 +16,17 @@ function cleanScenarioName(name){
   return String(name == null ? '' : name).trim().slice(0, MAX_SCENARIO_NAME);
 }
 
+// "Lean" when the account has no "Lean", else "Lean (2)", "Lean (3)"…
+function uniqueScenarioName(name){
+  const taken = new Set(scenarioIndex.map(s => s.name));
+  if(!taken.has(name)) return name;
+  const base = name.slice(0, MAX_SCENARIO_NAME - 6); // leave room for " (nn)"
+  for(let n = 2; n < 100; n++){
+    if(!taken.has(`${base} (${n})`)) return `${base} (${n})`;
+  }
+  return `${base} (${Date.now() % 1000})`;
+}
+
 // ---------- Saving ----------
 // Edits are debounced, then saved through `store`. What's waiting is kept per
 // scenario (pendingSaves: id → that scenario's state object), and every

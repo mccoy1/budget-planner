@@ -97,6 +97,9 @@ async function enterAccount(user){
   }
   lsSet(SIGNED_IN_KEY, user.email);
   editingId = null; editDraft = null; menuOpenId = null; inlineEditId = null;
+  // For the menu's "Copy from this browser" button. The browser keeps its own
+  // budgets while signed in, and they're otherwise out of reach.
+  browserBudgetCount = (await exportLocalBudgets()).scenarios.length;
   setSaveStatus('saved');
 }
 
@@ -200,6 +203,62 @@ async function changePassword(current, next, confirmNext){
   await apiChangePassword(current, next);
   accountSheet = null;
   showNotice('Password changed.');
+}
+
+// ---------- Copying this browser's budgets into the account ----------
+// The first sign-in to an empty account offers this on its own. After that the
+// account isn't empty, so this menu item is the only way in. It copies rather
+// than moves: the browser keeps its budgets either way.
+
+async function openCopyFromBrowser(){
+  mainMenuOpen = false;
+  accountSheet = 'copy';
+  browserBudgets = null; // the sheet shows "reading…" until this arrives
+  render();
+  browserBudgets = await exportLocalBudgets();
+  browserBudgetCount = browserBudgets.scenarios.length;
+  // Anything whose name is already in the account starts unticked, so coming
+  // back a second time doesn't quietly duplicate it.
+  const taken = new Set(scenarioIndex.map(s => s.name));
+  browserPick = new Set();
+  browserBudgets.scenarios.forEach((s, i) => { if(!taken.has(s.name)) browserPick.add(i); });
+  render();
+}
+
+async function copySelectedFromBrowser(){
+  if(!browserBudgets) return;
+  const chosen = browserBudgets.scenarios.filter((s, i) => browserPick.has(i));
+  if(!chosen.length) return;
+  const button = document.getElementById('copy-submit');
+  if(button){ button.disabled = true; button.textContent = 'Copying…'; }
+  await flushSaves();
+  let copied = 0;
+  try{
+    // Bring across the category colors these budgets use and the account
+    // doesn't have, or their categories would all land in one fallback colour.
+    const used = new Set();
+    chosen.forEach(s => (s.data.categories || []).forEach(c => used.add(c.colorType)));
+    const missing = (browserBudgets.colorGroups || []).filter(g => used.has(g.key) && !colorGroups.some(x => x.key === g.key));
+    if(missing.length){
+      const merged = colorGroups.concat(missing);
+      await store.saveColorGroups(merged); // only show them once they're saved
+      colorGroups = merged;
+    }
+    for(const s of chosen){
+      await store.createScenario(uniqueScenarioName(s.name), s.data);
+      copied++;
+    }
+  }catch(e){
+    accountSheet = null;
+    browserBudgets = null;
+    reportStoreError(e, copied ? `copy all of them — ${copied} of ${chosen.length} made it` : 'copy those budgets');
+    return;
+  }
+  accountSheet = null;
+  browserBudgets = null;
+  showNotice(copied === 1
+    ? `Copied “${chosen[0].name}” into your account. It's still in this browser too.`
+    : `Copied ${copied} budgets into your account. They're still in this browser too.`);
 }
 
 // ---------- Save outcomes (called from the save pipeline in scenarios.js) ----------
@@ -320,6 +379,7 @@ function renderAccountMenuSection(){
         <button class="bar-btn" data-act="changepassword">Change password</button>
         <button class="bar-btn" data-act="signout">Sign out</button>
       </div>
+      ${browserBudgetCount ? `<button class="bar-btn m-wide" data-act="copyfrombrowser">Copy from this browser (${browserBudgetCount})</button>` : ''}
       <div class="m-menu-hint">Your budgets are saved to your account.</div>` : `
       <button class="bar-btn m-wide" data-act="signin">Sign in</button>
       <div class="m-menu-hint">Budgets are saved in this browser only. Sign in to keep them in your account and see them on other devices.</div>`;
@@ -373,6 +433,42 @@ function renderAccountSheet(){
         </div>
       </form>`);
   }
+  if(accountSheet === 'copy'){
+    if(!browserBudgets){
+      return accountModal(`
+        <div class="edit-form account-form">
+          <div class="sheet-title">Budgets in this browser</div>
+          <div class="sheet-note">Reading them…</div>
+        </div>`);
+    }
+    const taken = new Set(scenarioIndex.map(s => s.name));
+    const rows = browserBudgets.scenarios.map((s, i) => {
+      const income = (s.data.income && s.data.income.amount) || 0;
+      const monthly = (s.data.income && s.data.income.period === 'yearly') ? income / 12 : income;
+      const count = (s.data.categories || []).length;
+      // The row owns the click, not a <label> around the box: a label fires a
+      // second, synthetic click on the input, which would toggle twice.
+      return `
+        <div class="copy-row" role="checkbox" tabindex="0" aria-checked="${browserPick.has(i)}" data-act="copytoggle" data-index="${i}">
+          <input type="checkbox" tabindex="-1" ${browserPick.has(i) ? 'checked' : ''} />
+          <span>
+            <span class="copy-name">${escapeHtml(s.name)}</span>
+            <span class="copy-meta">${escapeHtml(fmt(monthly, s.data.currency))}/mo · ${count} ${count === 1 ? 'category' : 'categories'}${taken.has(s.name) ? ' · already in your account' : ''}</span>
+          </span>
+        </div>`;
+    }).join('');
+    const picked = browserPick.size;
+    return accountModal(`
+      <div class="edit-form account-form">
+        <div class="sheet-title">Budgets in this browser</div>
+        <div class="sheet-note">These are saved in this browser, not in your account. Copying adds them to your account; they stay here too.</div>
+        <div class="copy-list">${rows || '<div class="sheet-note">This browser has no saved budgets.</div>'}</div>
+        <div class="form-actions">
+          <button class="btn-secondary" data-act="accountclose">Cancel</button>
+          <button class="btn-primary" id="copy-submit" data-act="copyconfirm" ${picked ? '' : 'disabled'}>${picked === 1 ? 'Copy 1 budget' : `Copy ${picked} budgets`}</button>
+        </div>
+      </div>`);
+  }
   if(accountSheet === 'conflict' && conflict){
     const name = (scenarioIndex.find(s => s.id === conflict.id) || conflict.theirs).name;
     return accountModal(`
@@ -391,6 +487,16 @@ function renderAccountSheet(){
 
 // Called from attachHandlers() after every render.
 function attachAccountHandlers(){
+  // The copy sheet's rows are custom checkboxes, so they need the keys a real
+  // one would handle.
+  document.querySelectorAll('.copy-row').forEach(row => {
+    row.addEventListener('keydown', e => {
+      if(e.key !== ' ' && e.key !== 'Enter') return;
+      e.preventDefault();
+      row.click();
+    });
+  });
+
   const form = document.getElementById('account-form');
   if(!form) return;
   form.addEventListener('submit', e => { e.preventDefault(); submitAccountForm(form.dataset.form); });
@@ -448,12 +554,20 @@ async function submitAccountForm(kind){
 }
 
 // Clicks with an account data-act. Returns true when it handled one.
-function handleAccountAction(a){
+function handleAccountAction(a, act){
   switch(a){
+    case 'copyfrombrowser': openCopyFromBrowser(); return true;
+    case 'copyconfirm': copySelectedFromBrowser(); return true;
+    case 'copytoggle': {
+      const i = Number(act.dataset.index);
+      if(browserPick.has(i)) browserPick.delete(i); else browserPick.add(i);
+      render();
+      return true;
+    }
     case 'signin': mainMenuOpen = false; accountSheet = 'signin'; render(); return true;
     case 'changepassword': mainMenuOpen = false; accountSheet = 'password'; render(); return true;
     case 'signout': signOut(); return true;
-    case 'accountclose': accountSheet = null; signinNote = null; render(); return true;
+    case 'accountclose': accountSheet = null; signinNote = null; browserBudgets = null; render(); return true;
     case 'retrysave':
       setSaveStatus('saving');
       if(pendingSaves.size || colorsDirty) flushSaves(); else setSaveStatus('saved');
