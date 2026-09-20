@@ -182,6 +182,12 @@ locally, and none when the page is opened from disk, which hides sign-in.
 
 - **First sign-in to an empty account** offers to upload this browser's
   budgets (they stay in the browser too), or to start from the example.
+- **Afterwards**, *Menu → Account → Copy from this browser* lists whatever is
+  still saved in this browser and copies the ones you tick into your account.
+  Budgets whose name is already in the account start unticked, and a copy of a
+  name that exists gets a suffix (`Lean (2)`), so nothing is overwritten and
+  copying twice doesn't duplicate. Category colors the account is missing come
+  across with them. The browser keeps its copies either way.
 - **Signed in**, the badge shows the save state: *Saving…*, *✓ Saved*, or
   *Not saved · Retry* when a save fails. Failed saves are kept and retried.
 - **Startup doesn't wait for the server unless it has to.** Only a device that
