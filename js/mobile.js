@@ -290,6 +290,7 @@ function renderMobileMenu(){
 
   return `
     <div class="menu-panel m-menu" data-act="noop">
+      ${renderAccountMenuSection()}
       <div class="menu-section">
         <div class="menu-section-title">Scenario</div>
         <select id="scenario-select" title="Switch scenarios">${scenarioOptions}</select>
@@ -353,14 +354,18 @@ function renderMobile(){
 
   app.innerHTML = `
     <div class="m-view">
+      ${renderNotice()}
       <div class="m-top">
         <div class="m-title-group">
           <span class="m-title">Budget</span>
           <span class="m-scenario">${escapeHtml(scenarioName)}</span>
         </div>
-        <div class="menu-wrap">
-          <button class="bar-btn" data-act="togglemainmenu">☰ Menu</button>
-          ${renderMobileMenu()}
+        <div class="m-top-actions">
+          ${renderSyncBadge()}
+          <div class="menu-wrap">
+            <button class="bar-btn" data-act="togglemainmenu">☰ Menu</button>
+            ${renderMobileMenu()}
+          </div>
         </div>
       </div>
 

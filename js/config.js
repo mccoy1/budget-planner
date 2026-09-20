@@ -12,9 +12,11 @@ const scenarioKey = id => 'scenario:' + id;
 let state = null;          // the currently-edited scenario's data
 let scenarioIndex = [];    // [{id, name, updatedAt}]
 let activeId = null;
-let saveTimer = null;
+let saveTimer = null;      // debounce for the save pipeline (scenarios.js)
+let pendingSaves = new Map(); // scenario id → its state object, edited but not yet saved
+let colorsDirty = false;   // color groups edited but not yet saved
+let saveChain = Promise.resolve(); // saves run one at a time, in order
 let colorGroups = [];      // [{key, name, color}] — shared across all scenarios
-let colorSaveTimer = null;
 let mainMenuOpen = false;
 let addMenuZone = null; // zone key whose "+ Add" menu is open, else null
 let searchOpen = false;
@@ -29,6 +31,25 @@ let expandedGroups = new Set(); // color-group keys expanded in the compact budg
 let shelfOpen = false;          // whether the "Not in budget" list is expanded
 let inlineEditId = null;        // category whose amount is being edited in place
 let swipedRowId = null;         // category row swiped open to reveal its Delete action
+
+// Accounts — see api.js and account.js
+// Where the account API lives: beside the dev server locally, the api.
+// subdomain in production, and nowhere when the page is opened from disk or
+// runs inside Claude, which means guest mode only (no Sign in button).
+const API_BASE = (()=>{
+  const host = location.hostname;
+  if(host === 'localhost' || host === '127.0.0.1') return `${location.protocol}//${host}:8500`;
+  if(host === 'budget.msmccoy.com') return 'https://api.budget.msmccoy.com';
+  return null;
+})();
+const SIGNED_IN_KEY = 'signed-in'; // device-local hint: an email means "try the account first on load"
+
+let account = null;         // {email} while signed in; null = guest, saving to this browser
+let accountSheet = null;    // 'signin' | 'password' | 'conflict' | null — the account dialog showing
+let sessionLost = false;    // signed in, but the server says the session ended
+let saveStatus = 'saved';   // 'saving' | 'saved' | 'error' — shown in account mode
+let conflict = null;        // {id, theirs} when a save hit a newer copy from elsewhere
+let notice = null;          // one-line message across the top, dismissable
 
 // Edit/form state (used by categories.js, render.js, events.js)
 let editingId = null; // category currently being edited, or 'new-left' / 'new-right' / 'new-budget'

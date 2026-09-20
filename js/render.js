@@ -170,13 +170,14 @@ function renderMainMenu(){
     <div class="color-row">
       <button class="icon-btn" data-act="togglecolorvis" data-key="${g.key}" data-tip="${hidden ? 'Show' : 'Hide'} this category">${hidden ? '🚫' : '👁'}</button>
       <input type="color" value="${g.color}" data-act="colorchange" data-key="${g.key}" title="Change color" />
-      <input type="text" value="${escapeHtml(g.name)}" data-act="colorrename" data-key="${g.key}" />
+      <input type="text" value="${escapeHtml(g.name)}" data-act="colorrename" data-key="${g.key}" maxlength="60" />
       <button class="icon-btn" data-act="colordelete" data-key="${g.key}" data-tip="Delete this color">✕</button>
     </div>`;
   }).join('');
 
   return `
     <div class="menu-panel" data-act="noop">
+      ${renderAccountMenuSection()}
       <div class="menu-section">
         <div class="menu-section-title">Scenario</div>
         <select id="scenario-select" title="Switch scenarios">${scenarioOptions}</select>
@@ -212,7 +213,7 @@ function renderMainMenu(){
         <div class="color-rows">${colorRows}</div>
         <div class="color-add-row">
           <input type="color" id="new-color-input" value="#7BAFD4" />
-          <input type="text" id="new-color-name" placeholder="New category name" />
+          <input type="text" id="new-color-name" placeholder="New category name" maxlength="60" />
           <button class="bar-btn" data-act="coloradd">+ Add</button>
         </div>
       </div>
@@ -250,7 +251,9 @@ function renderBreakdownPanel(mInc){
 
 function renderModal(){
   // Both views share these, so they render from renderModal() rather than from
-  // either layout.
+  // either layout. Account dialogs (sign in, conflicts) come first.
+  const accountSheetHtml = renderAccountSheet();
+  if(accountSheetHtml) return accountSheetHtml;
   if(bulkZone){
     return `<div class="modal-backdrop" data-act="bulkcancel"><div class="modal-box" data-act="noop">${renderBulkForm(bulkZone)}</div></div>`;
   }
@@ -288,14 +291,19 @@ function render(){
   ` : `<div class="income-amount" data-act="editincome">${fmt(state.income.amount)}<span style="font-size:16px;font-weight:500;"> /${state.income.period==='monthly'?'mo':'yr'}</span></div>`;
 
   app.innerHTML = `
+    ${renderNotice()}
     <div class="top-row">
       <div class="title-group">
         <span class="title">Household Budget Planner</span>
-        <span class="help-icon title-help" data-tip="${HAS_CLOUD_STORAGE
-          ? 'Drag categories into your budget, or use the move option in a chip menu. Shared with anyone who opens this planner.'
-          : 'Drag categories into your budget, or use the move option in a chip menu. Saving locally in this browser only — open this inside Claude to share scenarios with your spouse.'}">?</span>
+        <span class="help-icon title-help" data-tip="${escapeHtml(
+          'Drag categories into your budget, or use the move option in a chip menu. ' + (
+            account ? 'Saved to your account (' + account.email + ').'
+            : HAS_CLOUD_STORAGE ? 'Shared with anyone who opens this planner.'
+            : API_BASE ? 'Saved in this browser only. Sign in from the menu to keep your budgets in your account.'
+            : 'Saved in this browser only.'))}">?</span>
       </div>
       <div class="top-actions">
+        ${renderSyncBadge()}
         <button class="bar-btn icon-only" data-act="starttour" data-tip="Take a tour">🧭</button>
         ${searchOpen ? `
           <div class="search-box">
