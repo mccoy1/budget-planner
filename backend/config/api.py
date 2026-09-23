@@ -7,12 +7,17 @@ from django.http import JsonResponse
 
 
 class BadRequest(Exception):
-    """Raised by a view (or a validator) to answer 400 with a message."""
+    """Raised by a view (or a validator) to answer 400 with a message.
 
-    def __init__(self, message, status=400):
+    `extra` adds fields to the JSON body, for the cases where the frontend can
+    offer the one action that fixes the problem (e.g. `reconnect`).
+    """
+
+    def __init__(self, message, status=400, extra=None):
         super().__init__(message)
         self.message = message
         self.status = status
+        self.extra = extra or {}
 
 
 def error(message, status=400, **extra):
@@ -55,7 +60,7 @@ def api_view(methods, login_required=True):
             try:
                 return view(request, *args, **kwargs)
             except BadRequest as exc:
-                return error(exc.message, status=exc.status)
+                return error(exc.message, status=exc.status, **exc.extra)
 
         return wrapper
 

@@ -47,6 +47,13 @@ services:
         sync: false
       - key: LITESTREAM_SECRET_ACCESS_KEY
         sync: false
+      # Optional: the key that encrypts the stored YNAB token (Fernet). Without
+      # it the YNAB endpoints answer 503 and the planner hides the feature,
+      # which is the right failure — it must never store a token in the clear.
+      # Generate one with:
+      #   python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+      - key: YNAB_TOKEN_KEY
+        sync: false
       # The first admin, created on boot if it doesn't exist. The password can
       # be removed once the account exists; it is never used to reset it.
       - key: DJANGO_ADMIN_EMAIL

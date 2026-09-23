@@ -1,6 +1,12 @@
 // ---------- Money math ----------
 
+// An anchored scenario's income is the sum of what YNAB says was assigned that
+// month (ynab.js); the typed income is left untouched underneath, and comes
+// back if the anchor is removed. Everything downstream — percentages, totals,
+// the breakdown — reads this, so it all follows YNAB with no further changes.
 function monthlyIncome(){
+  const anchor = activeAnchor();
+  if(anchor) return milliToAmount(anchor.incomeMilli);
   return state.income.period === 'monthly' ? state.income.amount : state.income.amount/12;
 }
 function monthlyValue(cat){

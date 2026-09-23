@@ -291,6 +291,7 @@ function renderMobileMenu(){
   return `
     <div class="menu-panel m-menu" data-act="noop">
       ${renderAccountMenuSection()}
+      ${renderYnabMenuSection()}
       <div class="menu-section">
         <div class="menu-section-title">Scenario</div>
         <select id="scenario-select" title="Switch scenarios">${scenarioOptions}</select>
@@ -337,7 +338,8 @@ function renderMobile(){
   const scenarioName = (scenarioIndex.find(s => s.id === activeId) || {}).name || '';
   const groups = mobileBudgetGroups();
 
-  const incomeBlock = editingId === 'income' ? `
+  const anchor = activeAnchor(); // anchored: YNAB's number, not an editable field
+  const incomeBlock = anchor ? renderAnchoredIncome(anchor, true) : editingId === 'income' ? `
     <div class="m-income-edit">
       <input type="number" id="f-income" inputmode="decimal" step="any" min="0" value="${state.income.amount}" />
       <div class="seg m-seg">
