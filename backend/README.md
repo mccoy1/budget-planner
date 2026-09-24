@@ -56,10 +56,52 @@ signing in or out rotates it.
 | `GET, PATCH, DELETE /api/scenarios/<id>` | PATCH sends `{version, name?, data?}` and gets **409** with the current copy if `version` is stale |
 | `GET, PATCH /api/prefs` | `{colorGroups?, activeScenarioId?}` |
 | `POST /api/import` | `{scenarios: [{name, data}], colorGroups?, activeIndex?}`. Uploads a browser's budgets; only allowed while the account has none |
+| `GET /api/ynab/state` | The account's YNAB connection and every anchor, keyed by scenario. No YNAB call |
+| `PUT, PATCH, DELETE /api/ynab/connection` | PUT `{token}` (checked against YNAB before it's stored), PATCH `{planId}`, DELETE forgets the token |
+| `GET /api/ynab/plans` | The plans this token can see |
+| `GET /api/ynab/categories?month=YYYY-MM` | The picker: category groups with each category's assigned amount that month |
+| `PUT, DELETE /api/ynab/scenarios/<id>/anchor` | PUT `{month?, categoryIds}` anchors a scenario; the month is set once |
+| `POST /api/ynab/scenarios/<id>/refresh` | Re-read the anchored month's assigned amounts |
 
 Scenario `data` is the frontend's `state` object, stored as-is (up to 256 KB).
 Timestamps are epoch milliseconds. Access is decided in one place,
 `Scenario.objects.for_user()`, which is what sharing will extend.
+
+## YNAB (read-only)
+
+An anchored scenario takes its income from YNAB: the sum of `budgeted` across
+the categories it points at, for one pinned month. See the root README for what
+that means in the app, and `ynab/models.py` for the data model.
+
+**Nothing is ever written to YNAB.** Three GETs are the whole integration
+(`/plans`, `/plans/{id}/categories`, `/plans/{id}/months/{month}` — YNAB's
+top-level resource is `plans`, not `budgets`, whatever most examples say).
+Money is in milliunits: `$1.00` is `1000`, integers end to end, converted for
+display in the browser. HTTP calls happen outside the write transaction; this
+is single-writer SQLite, and holding a write open across a network call is how
+"database is locked" starts appearing.
+
+The token is a **personal access token**, created in YNAB under Account
+Settings → Developer Settings, and pasted into the planner once. It is stored
+encrypted, with the key in `YNAB_TOKEN_KEY` and never in the database. That
+matters here specifically: Litestream streams this database and its WAL to R2,
+so a plaintext token would be a live financial credential sitting in a bucket.
+Without the key set, the endpoints answer 503 and the planner hides the
+feature — a missing key must never mean storing the token in the clear.
+
+To set it up, generate a key and add it to the service's environment:
+
+```bash
+python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+```
+
+Rotating that key doesn't lose anything important: the stored token stops
+decrypting, the app says so and asks for a new one. YNAB tokens are revocable
+in YNAB's own account settings.
+
+For local work, `YNAB_API_BASE` points the client somewhere else, which is how
+the tests run (they serve a fake YNAB on localhost) and how the integration can
+be exercised without touching a real budget.
 
 ## How the database survives restarts
 
@@ -98,12 +140,14 @@ Everything here is a one-time setup in accounts only you can reach.
    same-site, and Safari blocks it from `*.onrender.com`.
 4. **Check the boot log** for `start: no replica found; starting a new
    database` on the first boot, then `created admin`.
-5. **Add `REQUIRE_REPLICA=1`** in the service's Environment tab. From then on,
+5. **YNAB (optional).** Add `YNAB_TOKEN_KEY` to the service's environment,
+   generated as above. Without it the planner simply doesn't offer YNAB.
+6. **Add `REQUIRE_REPLICA=1`** in the service's Environment tab. From then on,
    a boot that finds no replica (wrong bucket, path or key) refuses to start
    instead of quietly starting empty.
-6. **Prove it survives a restart:** sign in at `/admin/`, create a user, then
+7. **Prove it survives a restart:** sign in at `/admin/`, create a user, then
    restart the service from the dashboard. The user should still be there.
-7. Once the admin exists, you can delete `DJANGO_ADMIN_PASSWORD`.
+8. Once the admin exists, you can delete `DJANGO_ADMIN_PASSWORD`.
 
 To invite someone: in the admin, Users → Add, with their email and a temporary
 password. They change it from the planner's menu. There's no emailed password

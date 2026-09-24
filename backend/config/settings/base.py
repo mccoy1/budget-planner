@@ -47,6 +47,7 @@ INSTALLED_APPS = [
 
     'accounts',
     'budgets',
+    'ynab',
 ]
 
 MIDDLEWARE = [
@@ -144,6 +145,19 @@ AXES_USERNAME_CALLABLE = 'accounts.views.axes_username'
 # keyed on the username alone counts every attempt on the account, whatever
 # the client.
 SILENCED_SYSTEM_CHECKS = ['axes.W006']
+
+# ---------------------------------------------------------------------------
+# YNAB (optional, read-only — see ynab/models.py for what it does)
+# ---------------------------------------------------------------------------
+# The key that encrypts the stored YNAB token. Optional: without it the YNAB
+# endpoints answer 503 and the planner hides the feature, which is the right
+# failure — a missing key must never mean "store the token in the clear".
+# Generate one with:
+#   python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+YNAB_TOKEN_KEY = os.environ.get('YNAB_TOKEN_KEY', '').strip()
+# Overridable so tests and local runs can point at a stub instead of the real API.
+YNAB_API_BASE = os.environ.get('YNAB_API_BASE', 'https://api.ynab.com/v1')
+YNAB_TIMEOUT = env_int('YNAB_TIMEOUT', 15)
 
 # ---------------------------------------------------------------------------
 # Static files (the admin only)

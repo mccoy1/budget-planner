@@ -97,6 +97,7 @@ async function switchScenario(id){
   editingId = null; editDraft = null; menuOpenId = null;
   render();
   rememberActive(id);
+  maybeRefreshAnchor(id); // ynab.js: an anchored scenario picks up YNAB's latest on open
 }
 
 // Tell the store which scenario is open. Not awaited: nothing depends on it.
@@ -118,6 +119,9 @@ async function openNewScenario(name, data){
 }
 
 async function duplicateScenario(){
+  // Duplicating an anchored scenario is how the next month gets planned, so it
+  // asks for that month instead of copying this one's — see ynab.js.
+  if(activeAnchor()){ openYnabDuplicate(); return; }
   const current = scenarioIndex.find(s=>s.id===activeId);
   const defaultName = 'Copy of ' + (current ? current.name : 'Budget');
   const name = cleanScenarioName(prompt('Name this new scenario:', defaultName));
@@ -153,6 +157,7 @@ async function deleteScenario(){
   const doomed = activeId;
   await flushSaves();
   pendingSaves.delete(doomed);
+  ynabAnchors.delete(doomed); // its anchor goes with it on the server too
   try{ await store.deleteScenario(doomed); }
   catch(e){ reportStoreError(e, 'delete the scenario'); return; }
   const next = scenarioIndex[0].id;

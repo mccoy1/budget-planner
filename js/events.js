@@ -89,6 +89,9 @@ function attachHandlers(){
 
   // account dialogs: form submit (Enter or the button) and initial focus
   attachAccountHandlers();
+
+  // YNAB dialogs: the same, plus the month field and the category rows
+  attachYnabHandlers();
 }
 
 function handleClick(e){
@@ -98,6 +101,7 @@ function handleClick(e){
 
   if(a==='noop'){ return; }
   if(handleAccountAction(a, act)) return; // account.js: sign in/out, save retry, conflicts, notices
+  if(handleYnabAction(a, act)) return;    // ynab.js: connect, anchor income, refresh
   if(a==='togglemainmenu'){ mainMenuOpen = !mainMenuOpen; render(); return; }
   if(a==='toggleaddmenu'){ addMenuZone = (addMenuZone===act.dataset.zone) ? null : act.dataset.zone; render(); return; }
   if(a==='snapgrid'){ snapToGridBudget(); return; }

@@ -54,6 +54,16 @@ let browserPick = new Set();// which of them are ticked
 let browserBudgetCount = 0; // how many this browser has, for the menu's button
 let notice = null;          // one-line message across the top, dismissable
 
+// YNAB — see ynab.js. Anchors are the server's, not part of scenario data.
+let ynab = null;            // {configured, connected, planId, planName, lastSyncedAt, lastError}, once known
+let ynabAnchors = new Map();// scenario id → its anchor payload (only anchored scenarios appear)
+let ynabSheet = null;       // 'connect' | 'plan' | 'pick' | 'duplicate' | null
+let ynabPlans = [];         // plans to choose between, while that sheet is open
+let ynabPicker = null;      // {month, monthLabel, groups} — the category list, while the picker is open
+let ynabPick = new Set();   // category ids ticked in the picker
+let ynabMonthDraft = '';    // the month typed into the picker or the duplicate sheet
+let ynabBusy = false;       // a YNAB request is in flight (refresh, or saving an anchor)
+
 // Edit/form state (used by categories.js, render.js, events.js)
 let editingId = null; // category currently being edited, or 'new-left' / 'new-right' / 'new-budget'
 let editDraft = null;

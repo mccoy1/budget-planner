@@ -21,7 +21,11 @@ const tourSteps = [
   {
     selector: '.income-hero',
     title: 'Your household income',
-    body: 'Everything is planned against this number. Click it to set your monthly or yearly income.',
+    // Anchored to YNAB, the number isn't typed — clicking it picks the
+    // categories it adds up instead (ynab.js).
+    body: () => activeAnchor()
+      ? 'Everything is planned against this number, which YNAB supplies. Click it to change which categories add up to it.'
+      : 'Everything is planned against this number. Click it to set your monthly or yearly income.',
   },
   {
     selector: '.board > .col:first-child',
@@ -130,7 +134,7 @@ function showTourStep(){
   }
 
   overlay.querySelector('#tour-title').textContent = step.title;
-  overlay.querySelector('#tour-body').textContent = step.body;
+  overlay.querySelector('#tour-body').textContent = typeof step.body === 'function' ? step.body() : step.body;
   overlay.querySelector('#tour-progress').textContent = `Step ${tourIndex + 1} of ${tourSteps.length}`;
 
   const backBtn = overlay.querySelector('[data-tour="back"]');

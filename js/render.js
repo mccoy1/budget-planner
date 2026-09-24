@@ -178,6 +178,7 @@ function renderMainMenu(){
   return `
     <div class="menu-panel" data-act="noop">
       ${renderAccountMenuSection()}
+      ${renderYnabMenuSection()}
       <div class="menu-section">
         <div class="menu-section-title">Scenario</div>
         <select id="scenario-select" title="Switch scenarios">${scenarioOptions}</select>
@@ -254,6 +255,8 @@ function renderModal(){
   // either layout. Account dialogs (sign in, conflicts) come first.
   const accountSheetHtml = renderAccountSheet();
   if(accountSheetHtml) return accountSheetHtml;
+  const ynabSheetHtml = renderYnabSheet();
+  if(ynabSheetHtml) return ynabSheetHtml;
   if(bulkZone){
     return `<div class="modal-backdrop" data-act="bulkcancel"><div class="modal-box" data-act="noop">${renderBulkForm(bulkZone)}</div></div>`;
   }
@@ -279,7 +282,10 @@ function render(){
   const pct = mInc > 0 ? Math.min(100, (budgetTotal/mInc)*100) : 0;
   const isPos = remaining >= 0;
 
-  const incomeBlock = editingId==='income' ? `
+  // An anchored scenario's income isn't ours to type: the hero shows where the
+  // number came from, and tapping it opens the category picker (ynab.js).
+  const anchor = activeAnchor();
+  const incomeBlock = anchor ? renderAnchoredIncome(anchor, false) : editingId==='income' ? `
     <div class="income-edit-row">
       <input type="number" id="f-income" value="${state.income.amount}" min="0" step="any" />
       <div class="period-toggle">

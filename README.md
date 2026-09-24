@@ -71,6 +71,7 @@ budget-planner/
     ├── events.js     # event wiring + the data-act click dispatcher
     ├── tour.js       # the first-run guided tour
     ├── account.js    # sign in/out, startup, save badge, conflicts, account dialogs
+    ├── ynab.js       # YNAB: anchored income, the category picker, refresh
     └── main.js       # bootstrap (init), resize handling, saving on tab close
 ```
 
@@ -207,3 +208,36 @@ locally, and none when the page is opened from disk, which hides sign-in.
 
 Sharing a scenario with another account is planned; the backend's access
 check (`Scenario.objects.for_user()`) is the one place it will change.
+
+## YNAB (anchored income)
+
+A scenario's income is normally a number you type. **Anchored** to YNAB, it is
+instead the sum of `budgeted` — what you assigned that month — across the YNAB
+categories you pick. Everything else is unchanged: you still move categories in
+and out of the budget, and percentages and totals follow the new income.
+*Menu → YNAB* connects an account and anchors the open scenario.
+
+The integration is **read-only**. Nothing is ever written to YNAB, so the worst
+a bug here can do is show a wrong number.
+
+- **Signed in only.** There's nowhere safe in the browser to keep a YNAB token,
+  so guests see the menu item with that as the reason. The token is stored on
+  the server, encrypted, and never sent back to the page.
+- **A scenario's month is pinned** when it is anchored and never edited. A
+  September scenario keeps reading September's assignments forever — a record
+  of what was decided, not a number that rewrites itself on the 1st.
+  Duplicating an anchored scenario is how the next month gets planned: it
+  carries the categories over and asks for the new month.
+- **Pulls happen on demand only:** when an anchored scenario is opened (unless
+  it was read in the last 30 seconds) and when you press Refresh. No background
+  sync. One request per refresh, against a limit of 200 an hour.
+- **The income never changes without the reason being visible.** The hero says
+  which month it's reading, how many categories feed it and when it last read
+  them. A category that disappears from YNAB keeps its last known amount and
+  says so; a failed refresh keeps the amounts on screen and says why.
+- **Anchors are the server's data**, keyed by scenario, not part of the
+  scenario's saved `state`. The typed income is left untouched underneath and
+  comes back if the anchor is removed.
+
+Spending — pulling the transactions in those categories and counting them
+against what's committed — is the next phase and isn't built yet.

@@ -89,9 +89,14 @@ async function enterAccount(user){
   store = apiStore;
   try{
     await loadInitial();
+    // Which scenarios take their income from YNAB, and whether YNAB is
+    // connected at all. Part of entering the account, not an extra: without it
+    // an anchored scenario would show its typed income as if it were current.
+    await loadYnabState();
   }catch(e){
     account = null;
     store = localStore;
+    forgetYnab();
     await loadInitial();
     throw e;
   }
@@ -101,6 +106,7 @@ async function enterAccount(user){
   // budgets while signed in, and they're otherwise out of reach.
   browserBudgetCount = (await exportLocalBudgets()).scenarios.length;
   setSaveStatus('saved');
+  maybeRefreshAnchor(activeId); // not awaited: the app draws, then the number updates
 }
 
 // An account with no budgets yet: offer this browser's, else start from the
@@ -188,6 +194,7 @@ async function leaveAccount(message){
   sessionLost = false;
   lsDelete(SIGNED_IN_KEY);
   store = localStore;
+  forgetYnab();
   scenarioVersions.clear();
   pendingSaves.clear();
   colorsDirty = false;

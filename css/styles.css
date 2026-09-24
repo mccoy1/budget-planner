@@ -799,3 +799,92 @@ body.mobile-mode .boot-actions{flex-direction:column;}
 body.mobile-mode .copy-row{padding:11px 8px;}
 body.mobile-mode .copy-name{font-size:15px;}
 body.mobile-mode .copy-meta{font-size:12.5px;}
+
+/* ---------- YNAB anchored income (ynab.js) ---------- */
+/* Two homes, one markup: inside the gold income hero on the desktop board
+   (light text), and as a card of its own in the compact view (dark on paper). */
+.ynab-income{display:flex;flex-direction:column;align-items:center;gap:6px;}
+.ynab-amount{
+  font-family:'IBM Plex Mono';font-weight:700;font-size:36px;line-height:1;
+  color:#FFFBF1;background:transparent;border:none;padding:0;cursor:pointer;
+  border-bottom:2px dashed rgba(255,255,255,0.5);
+}
+.ynab-per{font-size:16px;font-weight:500;margin-left:2px;}
+.ynab-meta{
+  display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;
+  font-size:11.5px;color:rgba(255,255,255,0.85);
+}
+.ynab-tag{
+  font-family:'Space Grotesk';font-weight:600;letter-spacing:0.05em;text-transform:uppercase;
+  background:rgba(255,255,255,0.22);border-radius:20px;padding:3px 9px;
+}
+.ynab-sub{font-family:'IBM Plex Mono';}
+.ynab-refresh{
+  border:1px solid rgba(255,255,255,0.5);background:rgba(255,255,255,0.14);color:#FFFBF1;
+  font-family:'Inter';font-weight:600;font-size:11.5px;border-radius:20px;padding:4px 10px;cursor:pointer;
+}
+.ynab-refresh:hover:not(:disabled){background:rgba(255,255,255,0.9);color:var(--gold-deep);}
+.ynab-refresh:disabled{opacity:.65;cursor:default;}
+/* Why a number is what it is — a missing category, a failed pull, a lost
+   connection. The income never changes without the reason being visible. */
+.ynab-note{
+  font-size:11.5px;line-height:1.45;max-width:46ch;text-align:center;
+  background:rgba(255,255,255,0.92);color:var(--ink);
+  border-radius:8px;padding:5px 9px;
+}
+
+.ynab-income-compact{
+  background:var(--surface);border:1px solid var(--surface-line);border-radius:12px;
+  padding:10px 14px;margin-bottom:8px;gap:5px;
+}
+.m-income-amt-btn{
+  font-family:'IBM Plex Mono';font-weight:700;font-size:24px;line-height:1;
+  color:var(--ink);background:transparent;border:none;padding:0;cursor:pointer;
+  border-bottom:2px dashed var(--surface-line);
+}
+.ynab-income-compact .ynab-per{font-size:13px;color:var(--ink-soft);}
+.ynab-income-compact .ynab-meta{color:var(--ink-soft);font-size:12px;}
+.ynab-income-compact .ynab-tag{background:var(--paper);color:var(--gold-deep);}
+.ynab-income-compact .ynab-refresh{
+  border-color:var(--surface-line);background:var(--surface);color:var(--ink-soft);
+  min-height:32px;padding:6px 12px;
+}
+.ynab-income-compact .ynab-refresh:hover:not(:disabled){background:var(--paper);color:var(--gold-deep);}
+.ynab-income-compact .ynab-note{background:var(--paper);border:1px solid var(--surface-line);}
+
+/* The menu section */
+.ynab-menu-state{font-size:12.5px;color:var(--ink);margin-bottom:8px;}
+.ynab-menu-foot{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;
+  font-size:11.5px;color:var(--ink-soft);font-family:'IBM Plex Mono';
+}
+.link-btn{
+  border:none;background:transparent;color:var(--ink-soft);font-family:'Inter';font-size:11.5px;
+  text-decoration:underline;cursor:pointer;padding:2px 0;
+}
+.link-btn:hover{color:var(--rose-deep);}
+
+/* The category picker */
+.ynab-pick .ynab-list{max-height:40vh;}
+.ynab-group + .ynab-group{margin-top:8px;}
+.ynab-group-name{
+  font-family:'Space Grotesk';font-weight:600;font-size:11px;letter-spacing:0.06em;
+  text-transform:uppercase;color:var(--ink-soft);padding:4px 8px 2px;
+}
+/* The plan chooser reuses .copy-row as a real button, so it needs the resets
+   a <div> didn't. */
+button.copy-row{
+  width:100%;text-align:left;background:transparent;font-family:'Inter';color:var(--ink);
+}
+.ynab-total{
+  display:flex;align-items:center;justify-content:space-between;
+  border-top:1px solid var(--surface-line);margin-top:8px;padding-top:8px;
+  font-size:12.5px;color:var(--ink-soft);
+}
+.ynab-total strong{font-family:'IBM Plex Mono';font-size:15px;color:var(--ink);}
+.ynab-last-error{color:var(--red-deep);}
+.edit-form input[type=month]{
+  width:100%;border:1px solid var(--surface-line);border-radius:7px;padding:6px 8px;
+  font-family:'Inter';font-size:13px;background:var(--surface);color:var(--ink);
+}
+body.mobile-mode .edit-form input[type=month]{font-size:16px;padding:10px;}
