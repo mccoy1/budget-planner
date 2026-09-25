@@ -83,7 +83,7 @@ is single-writer SQLite, and holding a write open across a network call is how
 
 The token is a **personal access token**, created in YNAB under Account
 Settings → Developer Settings, and pasted into the planner once. It is stored
-encrypted, with the key in `YNAB_TOKEN_KEY` and never in the database. That
+encrypted, with the key in `YNAB_TOKEN_ENCRYPTION_KEY` and never in the database. That
 matters here specifically: Litestream streams this database and its WAL to R2,
 so a plaintext token would be a live financial credential sitting in a bucket.
 Without the key set, the endpoints answer 503 and the planner hides the
@@ -140,7 +140,7 @@ Everything here is a one-time setup in accounts only you can reach.
    same-site, and Safari blocks it from `*.onrender.com`.
 4. **Check the boot log** for `start: no replica found; starting a new
    database` on the first boot, then `created admin`.
-5. **YNAB (optional).** Add `YNAB_TOKEN_KEY` to the service's environment,
+5. **YNAB (optional).** Add `YNAB_TOKEN_ENCRYPTION_KEY` to the service's environment,
    generated as above. Without it the planner simply doesn't offer YNAB.
 6. **Add `REQUIRE_REPLICA=1`** in the service's Environment tab. From then on,
    a boot that finds no replica (wrong bucket, path or key) refuses to start

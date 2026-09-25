@@ -154,7 +154,7 @@ SILENCED_SYSTEM_CHECKS = ['axes.W006']
 # failure — a missing key must never mean "store the token in the clear".
 # Generate one with:
 #   python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
-YNAB_TOKEN_KEY = os.environ.get('YNAB_TOKEN_KEY', '').strip()
+YNAB_TOKEN_ENCRYPTION_KEY = os.environ.get('YNAB_TOKEN_ENCRYPTION_KEY', '').strip()
 # Overridable so tests and local runs can point at a stub instead of the real API.
 YNAB_API_BASE = os.environ.get('YNAB_API_BASE', 'https://api.ynab.com/v1')
 YNAB_TIMEOUT = env_int('YNAB_TIMEOUT', 15)

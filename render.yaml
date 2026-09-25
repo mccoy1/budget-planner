@@ -52,7 +52,7 @@ services:
       # which is the right failure — it must never store a token in the clear.
       # Generate one with:
       #   python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
-      - key: YNAB_TOKEN_KEY
+      - key: YNAB_TOKEN_ENCRYPTION_KEY
         sync: false
       # The first admin, created on boot if it doesn't exist. The password can
       # be removed once the account exists; it is never used to reset it.
