@@ -92,7 +92,7 @@ def save_connection(user, token):
     """
     if not crypto.key_configured():
         raise BadRequest(
-            'This server has no YNAB_TOKEN_KEY set, so a token cannot be stored safely.',
+            'This server has no YNAB_TOKEN_ENCRYPTION_KEY set, so a token cannot be stored safely.',
             status=503,
         )
     if not isinstance(token, str) or not token.strip():

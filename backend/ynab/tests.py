@@ -100,7 +100,7 @@ def _handler_for(fake):
     return Handler
 
 
-@override_settings(YNAB_TOKEN_KEY=KEY)
+@override_settings(YNAB_TOKEN_ENCRYPTION_KEY=KEY)
 class YnabTestCase(ApiClientMixin, TestCase):
     @classmethod
     def setUpClass(cls):
@@ -199,7 +199,7 @@ class ConnectionTests(YnabTestCase):
         self.assertEqual(self.api('PUT', '/api/ynab/connection', {'token': '  '}).status_code, 400)
         self.assertFalse(YnabConnection.objects.exists())
 
-    @override_settings(YNAB_TOKEN_KEY='')
+    @override_settings(YNAB_TOKEN_ENCRYPTION_KEY='')
     def test_without_a_server_key_nothing_is_stored(self):
         response = self.api('PUT', '/api/ynab/connection', {'token': TOKEN})
         self.assertEqual(response.status_code, 503)
@@ -394,7 +394,7 @@ class RefreshTests(YnabTestCase):
         self.assertEqual(self.api('POST', f'/api/ynab/scenarios/{plain.id}/refresh').status_code, 404)
 
     def test_a_key_the_stored_token_does_not_decrypt_under_asks_for_a_reconnect(self):
-        with override_settings(YNAB_TOKEN_KEY=Fernet.generate_key().decode()):
+        with override_settings(YNAB_TOKEN_ENCRYPTION_KEY=Fernet.generate_key().decode()):
             response = self.api('POST', f'/api/ynab/scenarios/{self.scenario_obj.id}/refresh')
         self.assertEqual(response.status_code, 502)
         self.assertIn('again', response.json()['error'])
