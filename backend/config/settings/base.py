@@ -153,7 +153,7 @@ SILENCED_SYSTEM_CHECKS = ['axes.W006']
 # endpoints answer 503 and the planner hides the feature, which is the right
 # failure — a missing key must never mean "store the token in the clear".
 # Generate one with:
-#   python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+#   python3 -c "import base64, os; print(base64.urlsafe_b64encode(os.urandom(32)).decode())"
 YNAB_TOKEN_ENCRYPTION_KEY = os.environ.get('YNAB_TOKEN_ENCRYPTION_KEY', '').strip()
 # Overridable so tests and local runs can point at a stub instead of the real API.
 YNAB_API_BASE = os.environ.get('YNAB_API_BASE', 'https://api.ynab.com/v1')

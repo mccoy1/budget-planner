@@ -51,7 +51,7 @@ services:
       # it the YNAB endpoints answer 503 and the planner hides the feature,
       # which is the right failure — it must never store a token in the clear.
       # Generate one with:
-      #   python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+      #   python3 -c "import base64, os; print(base64.urlsafe_b64encode(os.urandom(32)).decode())"
       - key: YNAB_TOKEN_ENCRYPTION_KEY
         sync: false
       # The first admin, created on boot if it doesn't exist. The password can
