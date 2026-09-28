@@ -91,10 +91,7 @@ def save_connection(user, token):
     chosen here and there is nothing more to ask.
     """
     if not crypto.key_configured():
-        raise BadRequest(
-            'This server has no YNAB_TOKEN_ENCRYPTION_KEY set, so a token cannot be stored safely.',
-            status=503,
-        )
+        raise BadRequest(crypto.key_problem(), status=503)
     if not isinstance(token, str) or not token.strip():
         raise BadRequest('Paste your YNAB personal access token.')
     plans = _call(YnabClient(token.strip()).plans)
@@ -283,8 +280,11 @@ def _ms(dt):
 
 def connection_payload(connection, plans=None):
     """What the frontend needs to describe the connection, minus the token."""
+    problem = crypto.key_problem()
     payload = {
-        'configured': crypto.key_configured(),
+        'configured': problem is None,
+        # Why YNAB is unavailable on this server, when it is. Shown as-is.
+        'keyProblem': problem,
         'connected': bool(connection),
         'planId': connection.plan_id if connection else None,
         'planName': connection.plan_name if connection else None,

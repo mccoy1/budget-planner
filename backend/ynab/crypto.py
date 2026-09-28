@@ -22,24 +22,42 @@ class TokenUnreadable(Exception):
     """The stored token doesn't decrypt under the current key (rotated, or corrupt)."""
 
 
+def key_problem():
+    """None when the key is usable, else why it isn't, in words worth showing.
+
+    Checking that it *parses*, not just that it's set: a key that is present
+    but malformed otherwise reads as configured, so the planner offers to
+    connect and only fails once a token has been pasted — which looks like the
+    token being rejected rather than the server being misconfigured.
+    """
+    key = getattr(settings, 'YNAB_TOKEN_ENCRYPTION_KEY', '')
+    if not key:
+        return (
+            'This server has no YNAB_TOKEN_ENCRYPTION_KEY set, so a YNAB token '
+            "can't be stored safely. See backend/README.md."
+        )
+    try:
+        Fernet(key.encode() if isinstance(key, str) else key)
+    except (ValueError, TypeError):
+        return (
+            "YNAB_TOKEN_ENCRYPTION_KEY is set, but it isn't a valid key: it has to be "
+            '32 random bytes in url-safe base64 — 44 characters, ending in "=". '
+            'See backend/README.md for how to generate one.'
+        )
+    return None
+
+
 def key_configured():
-    return bool(getattr(settings, 'YNAB_TOKEN_ENCRYPTION_KEY', ''))
+    return key_problem() is None
 
 
 def _box():
-    key = getattr(settings, 'YNAB_TOKEN_ENCRYPTION_KEY', '')
-    if not key:
-        raise TokenKeyMissing(
-            'YNAB_TOKEN_ENCRYPTION_KEY is not set, so a YNAB token cannot be stored safely.'
-        )
-    try:
-        return Fernet(key.encode() if isinstance(key, str) else key)
-    except (ValueError, TypeError) as exc:
-        # A malformed key must never fall back to storing the token in the clear.
-        raise TokenKeyMissing(
-            'YNAB_TOKEN_ENCRYPTION_KEY is not a valid Fernet key. Generate one with: '
-            'python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"'
-        ) from exc
+    # A malformed key must never fall back to storing the token in the clear.
+    problem = key_problem()
+    if problem:
+        raise TokenKeyMissing(problem)
+    key = settings.YNAB_TOKEN_ENCRYPTION_KEY
+    return Fernet(key.encode() if isinstance(key, str) else key)
 
 
 def encrypt_token(plain):

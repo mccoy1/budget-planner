@@ -204,7 +204,28 @@ class ConnectionTests(YnabTestCase):
         response = self.api('PUT', '/api/ynab/connection', {'token': TOKEN})
         self.assertEqual(response.status_code, 503)
         self.assertFalse(YnabConnection.objects.exists())
-        self.assertFalse(self.api('GET', '/api/ynab/state').json()['connection']['configured'])
+        connection = self.api('GET', '/api/ynab/state').json()['connection']
+        self.assertFalse(connection['configured'])
+        self.assertIn('has no YNAB_TOKEN_ENCRYPTION_KEY', connection['keyProblem'])
+
+    @override_settings(YNAB_TOKEN_ENCRYPTION_KEY='not-a-real-fernet-key')
+    def test_a_malformed_server_key_says_so_instead_of_looking_ready(self):
+        # It used to read as configured, so the planner offered to connect and
+        # only failed once a token had been pasted — which looks like YNAB
+        # rejecting the token rather than the server being misconfigured.
+        connection = self.api('GET', '/api/ynab/state').json()['connection']
+        self.assertFalse(connection['configured'])
+        self.assertIn('valid key', connection['keyProblem'])
+
+        response = self.api('PUT', '/api/ynab/connection', {'token': TOKEN})
+        self.assertEqual(response.status_code, 503)
+        self.assertIn('valid key', response.json()['error'])
+        self.assertFalse(YnabConnection.objects.exists())
+
+    def test_a_usable_key_reports_no_problem(self):
+        connection = self.api('GET', '/api/ynab/state').json()['connection']
+        self.assertTrue(connection['configured'])
+        self.assertIsNone(connection['keyProblem'])
 
     def test_several_plans_leaves_the_choice_open(self):
         self.fake.plans.append({'id': '22222222-2222-2222-2222-222222222222', 'name': 'Rental'})

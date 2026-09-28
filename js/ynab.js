@@ -363,7 +363,7 @@ function renderYnabMenuSection(){
       <div class="menu-section">
         <div class="menu-section-title">YNAB</div>
         <button class="bar-btn m-wide" disabled>Anchor income to YNAB</button>
-        <div class="m-menu-hint">This server has no YNAB_TOKEN_ENCRYPTION_KEY set, so a token can't be stored safely. See backend/README.md.</div>
+        <div class="m-menu-hint">${escapeHtml(ynab.keyProblem || "This server can't store a YNAB token safely. See backend/README.md.")}</div>
       </div>
       <div class="menu-divider"></div>`;
   }

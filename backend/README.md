@@ -92,12 +92,19 @@ feature — a missing key must never mean storing the token in the clear.
 To set it up, generate a key and add it to the service's environment:
 
 ```bash
-python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+python3 -c "import base64, os; print(base64.urlsafe_b64encode(os.urandom(32)).decode())"
 ```
 
-Rotating that key doesn't lose anything important: the stored token stops
-decrypting, the app says so and asks for a new one. YNAB tokens are revocable
-in YNAB's own account settings.
+A Fernet key is exactly 32 random bytes in url-safe base64, which is why the
+line above needs nothing installed: 44 characters ending in `=`. If the value
+is set but malformed, the planner says so in the menu rather than offering to
+connect and failing once a token has been pasted.
+
+**Changing the value makes the stored token unreadable**, by design, and
+nothing else is lost: the app says the saved token couldn't be read and asks
+for a new one. So rotating costs one re-paste, and carrying the same value to a
+new variable name costs nothing. YNAB tokens are revocable in YNAB's own
+account settings if you ever need to retire one.
 
 For local work, `YNAB_API_BASE` points the client somewhere else, which is how
 the tests run (they serve a fake YNAB on localhost) and how the integration can
